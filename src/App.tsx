@@ -9,6 +9,7 @@ function App() {
       <Comp.Nav />
       <Routes>
         <Route path="/" element={<Page.Landing />} />
+        <Route path="/login" element={<Page.Sign />} />
         <Route path="/home" element={<Page.Home />} />
         <Route path="/learn" element={<Page.Learn />} />
         <Route path="/chat" element={<Page.Messages />} />

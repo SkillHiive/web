@@ -3,7 +3,7 @@ import { Tag } from "../components";
 const Home = () => {
     return (
         <>
-            <div className="content pt-20 px-5 w-full h-full flex font-display">
+            <div className="content py-5 px-5 w-full h-full flex font-display">
                 <div className="content-left w-[20%]">
                     <div className="profile-card bg-[#292928] rounded-2xl overflow-hidden">
                         <div className="profilebanner w-full h-20">
@@ -49,7 +49,7 @@ const Home = () => {
                         <h2 className="p-3 text-xl font-display-bold">Skills</h2>
                         <div className="flex flex-wrap">
                             <Tag>
-                                UI/UX   
+                                UI/UX
                             </Tag>
                             <Tag>
                                 Programming
@@ -76,13 +76,13 @@ const Home = () => {
                     </div>
                     <div className="communities mt-4 p-1 bg-[#292928] rounded-2xl">
                         <div className="communities-top flex items-center">
-                        <h2 className="p-3 text-xl font-display-bold">Hives</h2>
-                         <div className="search-community ml-auto">
-                            <i className="fa-solid fa-search"></i>
-                         </div>
-                         <div className="add-community p-2">
-                            <i className="fa-regular fa-plus text-2xl"></i>
-                         </div>
+                            <h2 className="p-3 text-xl font-display-bold">Hives</h2>
+                            <div className="search-community ml-auto">
+                                <i className="fa-solid fa-search"></i>
+                            </div>
+                            <div className="add-community p-2">
+                                <i className="fa-regular fa-plus text-2xl"></i>
+                            </div>
                         </div>
                         <div className="community p-1 m-1 flex items-center">
                             <div className="community-img w-17 rounded-2xl border-3 border-white/8">
@@ -93,19 +93,19 @@ const Home = () => {
                                     Programing Penguins
                                 </div>
                                 <div className="community-connections text-sm">
-                                  <i className="fa-solid fa-circle text-[#fffd01]"></i>  34 friends already in Community
+                                    <i className="fa-solid fa-circle text-[#fffd01]"></i>  34 friends already in Community
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div className="content-middle w-[60%]">
-                        
+
                 </div>
                 <div className="content-right w-[20%]">
                     <div className="activity-card bg-[#292928] w-full h-full rounded-2xl p-1">
                         <h2 className="text-xl font-display-bold p-3">
-                           Recent Activity 
+                            Recent Activity
                         </h2>
                         <div className="activity-card m-1 p-1">
                             <div className="activity-content flex ">

@@ -3,7 +3,7 @@ import { NavLink } from 'react-router';
 const Nav = () => {
     return (
         <div className="nav fixed bottom-4 left-0 w-full flex justify-center">
-            <div className="wrapper rounded-2xl flex p-1 bg-white/10  justify-center">
+            <div className="wrapper rounded-2xl flex p-1 bg-[#0c0f14] border-[0.5px] border-[#242424]  justify-center">
                 <div className="nav-left  flex justify-start items-center">
                     <div className="nav-brand text-2xl font-bold ml-2 mr-2 text-[#fffd01]">
                         <img alt="" />
