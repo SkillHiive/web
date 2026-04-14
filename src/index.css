@@ -15,6 +15,10 @@
   src: url(./assets/fonts/poppins/Poppins-Bold.ttf);
 }
 
+* {
+  cursor: default
+}
+
 .transition-ui {
   @apply transition-all duration-300 ease-in-out;
 }
