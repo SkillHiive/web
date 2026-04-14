@@ -32,7 +32,7 @@ const Nav = () => {
                 </div>
                 <div className="nav-right w-[25%] flex justify-end items-center">
                     <div className="profile-btn bg-white/10 px-3 py-2 rounded-2xl border-1 border-white/10">
-                        TheLinuxGuy
+                        Lock In
                     </div>
                 </div>
             </div>

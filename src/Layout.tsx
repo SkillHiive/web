@@ -1,11 +1,12 @@
 import { Routes, Route } from "react-router";
-import './App.css'
+import './Layout.css'
 import * as Page from "./pages";
 import * as Comp from "./components";
 
 function App() {
   return (
     <>
+      <Comp.User />
       <Comp.Nav />
       <Routes>
         <Route path="/" element={<Page.Landing />} />
