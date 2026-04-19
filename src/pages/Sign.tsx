@@ -2,6 +2,7 @@ const Sign = () => {
     return (
         <>
             <section className="add-card page">
+                <h2 className="text-2xl">Welcome Back!</h2>
                 <form className="form border-[0.5px] border-[#242424]">
                     <label htmlFor="name" className="label">
                         <span className="title">Username</span>
@@ -24,7 +25,7 @@ const Sign = () => {
                             placeholder="Enter Password"
                         />
                     </label>
-                    <input className="checkout-btn" type="button" value="Checkout" />
+                    <input className="checkout-btn" type="button" value="Login" />
                 </form>
             </section>
 
