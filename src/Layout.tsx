@@ -1,22 +1,21 @@
 import { Routes, Route } from "react-router";
-import './Layout.css'
+import "./Layout.css";
 import * as Page from "./pages";
 import * as Comp from "./components";
-
+import Cursor from "./components/Cursor";
 function App() {
   return (
     <>
-      <Comp.User />
+    <Cursor />
       <Comp.Nav />
       <Routes>
         <Route path="/" element={<Page.Landing />} />
+        <Route path="/home" element={<Page.Landing />} />
         <Route path="/login" element={<Page.Sign />} />
-        <Route path="/home" element={<Page.Home />} />
         <Route path="/learn" element={<Page.Learn />} />
-        <Route path="/chat" element={<Page.Messages />} />
       </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
