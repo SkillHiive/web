@@ -279,8 +279,8 @@ export default function HUD() {
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]" />
 
                 <div className="relative flex items-center justify-center z-10">
-                  <div className="absolute w-14 h-14 rounded-full" />
-                  <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
+                  <div className="absolute rounded-full" />
+                  <img src={logo} alt="Logo" className="w-full h-full object-contain" />
                 </div>
               </div>
             </div>

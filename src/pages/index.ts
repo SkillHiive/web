@@ -1,6 +1,8 @@
 export { default as Sign } from "./Sign";
 export { default as Home } from "./Home";
 export { default as Learn } from "./Learn";
+export { default as Feed } from "./Feed";
 export { default as Messages } from "./Messages";
 export { default as Landing } from "./Landing";
 export { default as Profile } from "./Profile";
+export { default as Room } from "./Room";

@@ -158,7 +158,11 @@
 }
 
 .nav-block {
-  @apply bg-[#0c0f14] border-[0.5px] border-[#242424] mx-1 rounded-2xl;
+  @apply bg-[#0c0f1421] border-[0.5px] border-[#242424] mx-1 rounded-2xl backdrop-blur-sm;
+}
+
+.nav-link {
+  user-select: none;
 }
 
 :root {

@@ -1,3 +1,4 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useRef, useState, useEffect } from "react";
 import { NavLink } from "react-router";
 
@@ -67,6 +68,8 @@ export const LinkNav = () => {
     return pillCenter >= elLeft && pillCenter <= elRight;
   };
 
+    const session = useAuth();
+
   return (
     <div
       ref={navParent}
@@ -78,7 +81,7 @@ export const LinkNav = () => {
         tabRefs={tabRefs}
         setPosition={setPosition}
         position={position}
-        to="/"
+        to={session ? `/home` : `/`}
         iconType="regular"
         icon="home"
         isActiveByCursor={isActiveByCursor}
@@ -86,7 +89,7 @@ export const LinkNav = () => {
         Home
       </Tab>
 
-      <Tab
+      {/* <Tab
         index={1}
         tabRefs={tabRefs}
         setPosition={setPosition}
@@ -97,8 +100,31 @@ export const LinkNav = () => {
         isActiveByCursor={isActiveByCursor}
       >
         Learn
+      </Tab> */}
+      <Tab
+        index={1}
+        tabRefs={tabRefs}
+        setPosition={setPosition}
+        position={position}
+        to="/feed"
+        iconType="regular"
+        icon="comment"
+        isActiveByCursor={isActiveByCursor}
+      >
+        Feed
       </Tab>
-
+      <Tab
+        index={2}
+        tabRefs={tabRefs}
+        setPosition={setPosition}
+        position={position}
+        to="/profile"
+        iconType="regular"
+        icon="user"
+        isActiveByCursor={isActiveByCursor}
+      >
+        Profile
+      </Tab>
       {/* <Tab
         index={2}
         tabRefs={tabRefs}
@@ -154,6 +180,7 @@ export const Tab = ({
           ? "text-black"
           : "text-white"
       }`}
+      draggable="false"
     >
       <i className={`fa-${iconType} fa-${icon} text-xl mr-2`} />
       {children}

@@ -53,7 +53,6 @@ export default function Features() {
         <p className="section-label">Built different</p>
         <h2 className="fs-headline">
           Most platforms want
-          <br />
           your time.
           <br />
           <span className="fs-accent">We want your output.</span>
@@ -79,8 +78,7 @@ export default function Features() {
       <div className="fs-closer f-reveal" data-delay="500">
         <p className="fs-closer-text">
           You'll understand the rest
-          <br />
-          once you're inside.
+          once you use it.
         </p>
       </div>
 
@@ -98,7 +96,6 @@ export default function Features() {
 
         .fs-root {
           padding: 9rem 4rem;
-          border-top: 1px solid var(--ink-faint);
         }
 
         .fs-lede {
@@ -167,6 +164,7 @@ export default function Features() {
           align-items: baseline;
           gap: 2.5rem;
           flex-wrap: wrap;
+          
         }
 
         .fs-pillar-name {
@@ -176,7 +174,12 @@ export default function Features() {
           color: var(--ink);
           margin: 0;
           line-height: 1;
+          font-family: Helvetica;
           transition: color 0.3s ease;
+          font-size: clamp(1.6rem, 4vw, 3.5rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
         }
 
         .fs-pillar:hover .fs-pillar-name {
@@ -195,14 +198,20 @@ export default function Features() {
 
         .fs-closer {
           margin-top: 7rem;
-          border-top: 1px solid var(--ink-faint);
           padding-top: 4rem;
+          text-align: center;
+          display: flex;
+          justify-content: center;
         }
 
         .fs-closer-text {
-          font-family: var(--font-serif);
+          font-family: Helvetica;
           font-size: clamp(1.4rem, 3vw, 2.4rem);
           font-style: italic;
+    font-weight: 600;
+    line-height: 0.95;
+    text-align: center;
+    letter-spacing: -0.02em;
           line-height: 1.55;
           color: var(--ink-muted);
           max-width: 500px;

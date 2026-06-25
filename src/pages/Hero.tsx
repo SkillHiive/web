@@ -139,13 +139,13 @@ export default function Hero() {
               </h1>
 
               <p className="hero-sub reveal-text" data-delay="500">
-                No algorithm. No feed. No performance system. <br />
+                No algorithms. No performance system. <br />
                 Just real people, real connections, real work.
                 <br />
                 Without burnouts
               </p>
 
-              <div className="ticket-zone reveal-text" data-delay="700">
+              <div className="ticket-zone reveal-text hover:scale-[1.025] transition-ui" data-delay="700">
                 <button
                   ref={ctaRef}
                   className="cta-btn"

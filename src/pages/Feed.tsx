@@ -1,0 +1,887 @@
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import { supabase } from "@/lib/supabase";
+import { useProfile } from "@/hooks/profileContext";
+import { Heart, MessageCircle, Share2, Briefcase, FileText, Camera, Plus, X, ChevronDown } from "lucide-react";
+import SwipeLayout from "@/components/SwipeLayout";
+
+// ─────────────────────────────────────────
+// TYPES  (identical to mobile RawPost)
+// ─────────────────────────────────────────
+
+type PostType      = "project" | "offer" | "media";
+type ProjectStatus = "active" | "completed" | "paused";
+type OfferType     = "full_time" | "part_time" | "internship" | "contract";
+
+interface RawPost {
+  id:             string;
+  user_id:        string;
+  post_type:      PostType;
+  caption:        string | null;
+  likes_count:    number;
+  comments_count: number;
+  created_at:     string;
+  profiles: {
+    id:       string;
+    username: string | null;
+    avatar:   string | null;
+  };
+  project_posts: {
+    title:       string;
+    description: string | null;
+    started_at:  string | null;
+    ended_at:    string | null;
+    status:      ProjectStatus;
+  } | null;
+  offer_posts: {
+    company:      string | null;
+    role:         string | null;
+    salary_range: string | null;
+    location:     string | null;
+    offer_type:   string | null;
+  } | null;
+  post_images: {
+    url:        string;
+    sort_order: number;
+  }[] | null;
+}
+
+// ─────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────
+
+const PAGE_SIZE = 4;
+
+const FEED_QUERY = `
+  id,
+  post_type,
+  caption,
+  likes_count,
+  comments_count,
+  created_at,
+  profiles:profiles!posts_user_id_profiles_fkey (
+    id,
+    username,
+    avatar
+  ),
+  project_posts:project_posts!project_posts_post_id_fkey (
+    title,
+    description,
+    started_at,
+    ended_at,
+    status
+  ),
+  offer_posts:offer_posts!offer_posts_post_id_fkey (
+    company,
+    role,
+    salary_range,
+    location,
+    offer_type
+  ),
+  post_images:post_images!post_images_post_id_fkey (
+    url,
+    sort_order
+  )
+`;
+
+const STATUS_CFG: Record<ProjectStatus, { label: string; color: string; dot: string }> = {
+  active:    { label: "Active",    color: "text-green-400",  dot: "bg-green-400"  },
+  completed: { label: "Completed", color: "text-indigo-400", dot: "bg-indigo-400" },
+  paused:    { label: "Paused",    color: "text-amber-400",  dot: "bg-amber-400"  },
+};
+
+const OFFER_LABELS: Record<string, string> = {
+  full_time:  "Full-time",
+  part_time:  "Part-time",
+  internship: "Internship",
+  contract:   "Contract",
+};
+
+const POST_TYPES: { value: PostType; label: string; Icon: React.FC<{ size: number; className?: string }> }[] = [
+  { value: "project", label: "Project", Icon: Briefcase },
+  { value: "media",   label: "Media",   Icon: Camera    },
+  { value: "offer",   label: "Offer",   Icon: FileText  },
+];
+
+// ─────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────
+
+function timeAgo(iso: string): string {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60)    return `${s}s ago`;
+  if (s < 3600)  return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", year: "numeric" });
+}
+
+function calcDuration(s: string | null, e: string | null): string | null {
+  if (!s) return null;
+  const ms = (e ? new Date(e) : new Date()).getTime() - new Date(s).getTime();
+  const mo = Math.round(ms / (1000 * 60 * 60 * 24 * 30));
+  if (mo < 1)  return "< 1 mo";
+  if (mo < 12) return `${mo} mo`;
+  const y = Math.floor(mo / 12), r = mo % 12;
+  return r ? `${y} yr ${r} mo` : `${y} yr`;
+}
+
+function getInitials(name: string): string {
+  return name.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("");
+}
+
+function todayLabel(): string {
+  return new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+}
+
+// ─────────────────────────────────────────
+// AVATAR
+// ─────────────────────────────────────────
+
+function Avatar({
+  name,
+  src,
+  size = "w-8 h-8",
+  textSize = "text-xs",
+  ring = false,
+}: {
+  name: string;
+  src: string | null;
+  size?: string;
+  textSize?: string;
+  ring?: boolean;
+}) {
+  const initials = getInitials(name);
+  const base = `${size} rounded-full flex items-center justify-center font-bold flex-shrink-0 ${ring ? "ring-2 ring-[#fffd01]/40" : ""}`;
+
+  if (src) {
+    return <img src={src} alt={name} className={`${base} object-cover`} />;
+  }
+
+  return (
+    <div className={`${base} bg-[#fffd01]/10 text-[#fffd01] ${textSize}`}>
+      {initials}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// ACTION ROW  (mirrors ActionRow.tsx logic)
+// ─────────────────────────────────────────
+
+function ActionRow({
+  postId,
+  likes,
+  comments,
+  onCommentPress,
+}: {
+  postId: string;
+  likes: number;
+  comments: number;
+  onCommentPress?: (id: string) => void;
+}) {
+  const [liked,     setLiked]     = useState(false);
+  const [likeCount, setLikeCount] = useState(likes);
+  const [loading,   setLoading]   = useState(false);
+
+  // Check if current user already liked — mirrors mobile
+  useEffect(() => {
+    let cancelled = false;
+    async function check() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data } = await supabase
+        .from("likes")
+        .select("id")
+        .eq("post_id", postId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!cancelled) setLiked(!!data);
+    }
+    check();
+    return () => { cancelled = true; };
+  }, [postId]);
+
+  const handleLike = useCallback(async () => {
+    if (loading) return;
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setLoading(false); return; }
+
+    if (liked) {
+      setLiked(false);
+      setLikeCount(c => Math.max(c - 1, 0));
+      const { error } = await supabase.from("likes").delete()
+        .eq("post_id", postId).eq("user_id", user.id);
+      if (error) { setLiked(true); setLikeCount(c => c + 1); }
+    } else {
+      setLiked(true);
+      setLikeCount(c => c + 1);
+      const { error } = await supabase.from("likes").insert({ post_id: postId, user_id: user.id });
+      if (error) { setLiked(false); setLikeCount(c => Math.max(c - 1, 0)); }
+    }
+    setLoading(false);
+  }, [liked, loading, postId]);
+
+  return (
+    <div className="flex items-center gap-1 px-5 py-3 border-t border-white/[0.06]">
+      <button
+        onClick={handleLike}
+        disabled={loading}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150
+          ${liked
+            ? "bg-red-500/10 text-red-400"
+            : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-300"
+          } disabled:opacity-50`}
+      >
+        <Heart
+          size={14}
+          fill={liked ? "currentColor" : "none"}
+          className={liked ? "scale-110" : ""}
+        />
+        <span>{likeCount > 0 ? likeCount : "Like"}</span>
+      </button>
+
+      <button
+        onClick={() => onCommentPress?.(postId)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-300 transition-all duration-150"
+      >
+        <MessageCircle size={14} />
+        <span>{comments > 0 ? comments : "Comment"}</span>
+      </button>
+
+      <div className="flex-1" />
+
+      <button className="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.05] transition-all duration-150">
+        <Share2 size={13} />
+      </button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// PROJECT CARD
+// ─────────────────────────────────────────
+
+function ProjectCard({ post, myId }: { post: RawPost; myId: string | null }) {
+  const navigate = useNavigate();
+  const pp  = post.project_posts!;
+  const cfg = STATUS_CFG[pp.status];
+  const img = [...(post.post_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)[0]?.url;
+  const dur = calcDuration(pp.started_at, pp.ended_at);
+
+  return (
+    <article className="group relative py-7 border-b border-white/[0.06] last:border-b-0">
+      {/* hover accent ribbon */}
+      <div className="absolute left-0 top-7 bottom-7 w-0.5 bg-[#fffd01] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
+      {/* Author row */}
+      <div className="flex items-center gap-2.5 mb-4">
+        <button
+          onClick={() => post.profiles.id !== myId && navigate(`/profile/${post.profiles.id}`)}
+          className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+        >
+          <Avatar name={post.profiles.username ?? "?"} src={post.profiles.avatar} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-zinc-200 truncate leading-none mb-0.5">
+              {post.profiles.username ?? "unknown"}
+            </p>
+            <p className="text-[11px] text-zinc-600">{timeAgo(post.created_at)}</p>
+          </div>
+        </button>
+        <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#fffd01]/8 text-[#fffd01]">
+          Project
+        </span>
+      </div>
+
+      {/* Title */}
+      <h2 className="text-[18px] font-black text-zinc-100 leading-snug tracking-tight mb-2">
+        {pp.title}
+      </h2>
+
+      {/* Meta: status + dates */}
+      <div className="flex items-center gap-2 text-[11.5px] text-zinc-500 mb-3">
+        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
+        <span className={`font-bold ${cfg.color}`}>{cfg.label}</span>
+        {pp.started_at && (
+          <>
+            <span className="text-zinc-700">·</span>
+            <span>{fmtDate(pp.started_at)} → {pp.ended_at ? fmtDate(pp.ended_at) : "Present"}</span>
+            {dur && <><span className="text-zinc-700">·</span><span>{dur}</span></>}
+          </>
+        )}
+      </div>
+
+      {/* Cover image */}
+      {img && (
+        <div className="w-full aspect-[16/7] rounded-xl overflow-hidden bg-zinc-900 mb-4">
+          <img src={img} alt={pp.title} className="w-full h-full object-cover" loading="lazy" />
+        </div>
+      )}
+
+      {/* Description */}
+      {pp.description && (
+        <p className="text-[13.5px] text-zinc-400 leading-relaxed mb-2 line-clamp-3">
+          {pp.description}
+        </p>
+      )}
+
+      {/* Caption */}
+      {post.caption && (
+        <p className="text-[13px] text-zinc-600 italic mb-1">"{post.caption}"</p>
+      )}
+
+      <ActionRow
+        postId={post.id}
+        likes={post.likes_count}
+        comments={post.comments_count}
+        onCommentPress={() => navigate(`/post/${post.id}`)}
+      />
+    </article>
+  );
+}
+
+// ─────────────────────────────────────────
+// OFFER CARD
+// ─────────────────────────────────────────
+
+function OfferCard({ post, myId }: { post: RawPost; myId: string | null }) {
+  const navigate = useNavigate();
+  const op = post.offer_posts!;
+  const typeLabel = op.offer_type ? (OFFER_LABELS[op.offer_type] ?? op.offer_type) : null;
+
+  return (
+    <article className="group relative py-7 border-b border-white/[0.06] last:border-b-0">
+      {/* hover accent ribbon */}
+      <div className="absolute left-0 top-7 bottom-7 w-0.5 bg-green-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
+      {/* Author row */}
+      <div className="flex items-center gap-2.5 mb-4">
+        <button
+          onClick={() => post.profiles.id !== myId && navigate(`/profile/${post.profiles.id}`)}
+          className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+        >
+          <Avatar name={post.profiles.username ?? "?"} src={post.profiles.avatar} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-zinc-200 truncate leading-none mb-0.5">
+              {post.profiles.username ?? "unknown"}
+            </p>
+            <p className="text-[11px] text-zinc-600">{timeAgo(post.created_at)}</p>
+          </div>
+        </button>
+        <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-400/10 text-green-400">
+          Offer
+        </span>
+      </div>
+
+      {/* Offer stamp */}
+      <div className="relative rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 mb-3 overflow-hidden">
+        {/* left accent bar */}
+        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-green-400 rounded-l-xl" />
+        <div className="pl-1">
+          {op.company && (
+            <p className="text-[10px] font-black uppercase tracking-[0.08em] text-green-400 mb-1.5">
+              {op.company}
+            </p>
+          )}
+          <p className="text-[17px] font-black text-zinc-100 tracking-tight leading-tight mb-2">
+            {op.role ?? "Role TBD"}
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            {op.salary_range && <span className="text-[12.5px] text-zinc-400">{op.salary_range}</span>}
+            {op.salary_range && op.location && <span className="text-zinc-700">·</span>}
+            {op.location && <span className="text-[12.5px] text-zinc-400">{op.location}</span>}
+            {typeLabel && (
+              <span className="ml-auto text-[10.5px] font-bold text-green-400 bg-green-400/10 px-2.5 py-0.5 rounded-full">
+                {typeLabel}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {post.caption && (
+        <p className="text-[13px] text-zinc-500 leading-relaxed italic mb-1">"{post.caption}"</p>
+      )}
+
+      <ActionRow
+        postId={post.id}
+        likes={post.likes_count}
+        comments={post.comments_count}
+        onCommentPress={() => navigate(`/post/${post.id}`)}
+      />
+    </article>
+  );
+}
+
+// ─────────────────────────────────────────
+// COMPOSE BAR  (mirrors ShareBar.tsx flow)
+// ─────────────────────────────────────────
+
+function ComposeBar({ onPosted }: { onPosted: () => void }) {
+  const { profile } = useProfile();
+
+  const [open,    setOpen]    = useState(false);
+  const [type,    setType]    = useState<PostType>("project");
+  const [caption, setCaption] = useState("");
+  const [title,   setTitle]   = useState("");
+  const [company, setCompany] = useState("");
+  const [role,    setRole]    = useState("");
+  const [posting, setPosting] = useState(false);
+  const [error,   setError]   = useState<string | null>(null);
+
+  const canPost =
+    caption.trim().length > 0 &&
+    (type !== "project" || title.trim().length > 0) &&
+    (type !== "offer"   || (company.trim().length > 0 && role.trim().length > 0));
+
+  function reset() {
+    setCaption(""); setTitle(""); setCompany(""); setRole("");
+    setError(null); setType("project"); setOpen(false);
+  }
+
+  async function handlePost() {
+    if (!canPost || posting) return;
+    setError(null);
+    try {
+      setPosting(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not signed in");
+
+      const { data: created, error: postErr } = await supabase
+        .from("posts")
+        .insert({ user_id: user.id, post_type: type, caption: caption.trim() || null })
+        .select("id")
+        .single();
+      if (postErr) throw postErr;
+
+      if (type === "project") {
+        const { error: e } = await supabase.from("project_posts").insert({
+          post_id:     created.id,
+          title:       title.trim(),
+          description: null,
+          started_at:  null,
+          ended_at:    null,
+          status:      "active",
+        });
+        if (e) throw e;
+      }
+
+      if (type === "offer") {
+        const { error: e } = await supabase.from("offer_posts").insert({
+          post_id:  created.id,
+          company:  company.trim() || null,
+          role:     role.trim()    || null,
+          offer_type: "full_time",
+        });
+        if (e) throw e;
+      }
+
+      reset();
+      onPosted();
+    } catch (e: any) {
+      setError(e?.message ?? "Something went wrong.");
+    } finally {
+      setPosting(false);
+    }
+  }
+
+  const displayName = profile?.username ?? profile?.displayname ?? "ME";
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-dashed border-white/[0.1] hover:border-[#fffd01]/30 hover:bg-[#fffd01]/[0.03] transition-all duration-200 text-left mb-8"
+      >
+        <Avatar name={displayName} src={profile?.avatar ?? null} size="w-8 h-8" textSize="text-xs" />
+        <span className="flex-1 text-[13.5px] text-zinc-600">Share your progress...</span>
+        <span className="w-7 h-7 rounded-full bg-[#fffd01]/10 flex items-center justify-center text-[#fffd01] flex-shrink-0">
+          <Plus size={15} strokeWidth={2.5} />
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="border border-white/[0.1] rounded-2xl p-5 mb-8 bg-white/[0.02] flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-bold text-zinc-300">New Post</span>
+        <button
+          onClick={reset}
+          className="w-6 h-6 rounded-full flex items-center justify-center text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.06] transition-all"
+        >
+          <X size={13} strokeWidth={2.5} />
+        </button>
+      </div>
+
+      {/* Type selector */}
+      <div className="flex gap-2">
+        {POST_TYPES.map(({ value, label, Icon }) => (
+          <button
+            key={value}
+            onClick={() => setType(value)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-150
+              ${type === value
+                ? "border-[#fffd01]/40 bg-[#fffd01]/10 text-[#fffd01]"
+                : "border-white/[0.08] text-zinc-500 hover:text-zinc-300"
+              }`}
+          >
+            <Icon size={12} />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Conditional extra fields */}
+      {type === "project" && (
+        <input
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          placeholder="Project title *"
+          maxLength={80}
+          className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-white/[0.15] transition-colors font-semibold"
+        />
+      )}
+      {type === "offer" && (
+        <div className="flex gap-2">
+          <input
+            value={company}
+            onChange={e => setCompany(e.target.value)}
+            placeholder="Company *"
+            maxLength={80}
+            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-white/[0.15] transition-colors"
+          />
+          <input
+            value={role}
+            onChange={e => setRole(e.target.value)}
+            placeholder="Role *"
+            maxLength={80}
+            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-white/[0.15] transition-colors"
+          />
+        </div>
+      )}
+
+      {/* Caption */}
+      <div>
+        <textarea
+          value={caption}
+          onChange={e => setCaption(e.target.value)}
+          placeholder={
+            type === "project" ? "What are you building? Share an update..."
+            : type === "media"  ? "What's the story behind this?"
+            :                     "Tell us about this opportunity..."
+          }
+          maxLength={500}
+          rows={3}
+          className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-[13.5px] text-zinc-200 placeholder-zinc-600 outline-none focus:border-white/[0.15] transition-colors resize-none leading-relaxed"
+        />
+        <p className={`text-right text-[11px] mt-1 ${caption.length > 400 ? "text-amber-400" : "text-zinc-700"}`}>
+          {caption.length}/500
+        </p>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+          {error}
+        </p>
+      )}
+
+      {/* Actions */}
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={reset}
+          className="px-4 py-2 rounded-xl border border-white/[0.08] text-zinc-400 text-sm font-semibold hover:text-zinc-200 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handlePost}
+          disabled={!canPost || posting}
+          className="px-5 py-2 rounded-xl text-sm font-black transition-all duration-150
+            disabled:opacity-30 disabled:cursor-not-allowed
+            bg-[#fffd01] text-zinc-900 hover:bg-[#fffd01]/90 enabled:shadow-[0_0_20px_rgba(255,253,1,0.2)]"
+        >
+          {posting ? "Publishing..." : "Publish"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// ICON RAIL NAV
+// ─────────────────────────────────────────
+
+function Rail() {
+  const navigate = useNavigate();
+  const { profile } = useProfile();
+  const displayName = profile?.username ?? profile?.displayname ?? "ME";
+
+  const navItems = [
+    {
+      label: "Feed",
+      active: true,
+      onClick: () => {},
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+      ),
+    },
+    {
+      label: "Profile",
+      active: false,
+      onClick: () => profile && navigate(`/profile/${profile.id}`),
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+      ),
+    },
+    {
+      label: "Projects",
+      active: false,
+      onClick: () => navigate("/projects"),
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+        </svg>
+      ),
+    },
+    {
+      label: "Saved",
+      active: false,
+      onClick: () => navigate("/saved"),
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <aside className="sticky top-0 h-screen w-14 flex flex-col items-center py-5 border-r border-white/[0.06] bg-[#0c0c0e] z-50 gap-1 flex-shrink-0">
+      {/* Logo */}
+      <div className="w-8 h-8 rounded-lg bg-[#fffd01] flex items-center justify-center mb-5 flex-shrink-0">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0c0c0e" strokeWidth="2.5">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" />
+        </svg>
+      </div>
+
+      {navItems.map(item => (
+        <button
+          key={item.label}
+          onClick={item.onClick}
+          title={item.label}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-150
+            ${item.active
+              ? "bg-[#fffd01]/10 text-[#fffd01]"
+              : "text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.05]"
+            }`}
+        >
+          {item.icon}
+        </button>
+      ))}
+
+      <div className="flex-1" />
+
+      <Avatar
+        name={displayName}
+        src={profile?.avatar ?? null}
+        size="w-8 h-8"
+        textSize="text-[10px]"
+        ring
+      />
+    </aside>
+  );
+}
+
+// ─────────────────────────────────────────
+// FEED PAGE
+// ─────────────────────────────────────────
+
+export default function Feed() {
+  const { profile } = useProfile();
+
+  const [posts,       setPosts]       = useState<RawPost[]>([]);
+  const [loading,     setLoading]     = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error,       setError]       = useState<string | null>(null);
+  const [hasMore,     setHasMore]     = useState(true);
+  const [cursor,      setCursor]      = useState<string | null>(null);
+  const [filter,      setFilter]      = useState<"all" | "projects" | "offers">("all");
+
+  const isFetchingMore = useRef(false);
+  const lastFetchedRef = useRef<number>(0);
+
+  // ── initial fetch ──
+  const fetchFeed = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    setError(null);
+
+    let query = supabase
+      .from("posts")
+      .select(FEED_QUERY)
+      .order("created_at", { ascending: false })
+      .limit(PAGE_SIZE);
+
+    if (filter === "projects") query = query.eq("post_type", "project");
+    if (filter === "offers")   query = query.eq("post_type", "offer");
+
+    const { data, error: fetchErr } = await query.returns<RawPost[]>();
+
+    if (fetchErr) {
+      setError("Couldn't load posts. Try refreshing.");
+      setLoading(false);
+      return;
+    }
+
+    const rows = data ?? [];
+    lastFetchedRef.current = Date.now();
+    setPosts(rows);
+    setHasMore(rows.length === PAGE_SIZE);
+    setCursor(rows.length > 0 ? rows[rows.length - 1].created_at : null);
+    setLoading(false);
+  }, [filter]);
+
+  // ── load more (cursor pagination — same as mobile) ──
+  const fetchMore = useCallback(async () => {
+    if (isFetchingMore.current || !hasMore || !cursor) return;
+    isFetchingMore.current = true;
+    setLoadingMore(true);
+
+    let query = supabase
+      .from("posts")
+      .select(FEED_QUERY)
+      .order("created_at", { ascending: false })
+      .lt("created_at", cursor)
+      .limit(PAGE_SIZE);
+
+    if (filter === "projects") query = query.eq("post_type", "project");
+    if (filter === "offers")   query = query.eq("post_type", "offer");
+
+    const { data, error: fetchErr } = await query.returns<RawPost[]>();
+
+    if (!fetchErr && data) {
+      const rows = data ?? [];
+      setPosts(prev => [...prev, ...rows]);
+      setHasMore(rows.length === PAGE_SIZE);
+      setCursor(rows.length > 0 ? rows[rows.length - 1].created_at : cursor);
+    }
+
+    setLoadingMore(false);
+    isFetchingMore.current = false;
+  }, [cursor, hasMore, filter]);
+
+  useEffect(() => { fetchFeed(); }, [fetchFeed]);
+
+  function renderPost(post: RawPost) {
+    const myId = profile?.id ?? null;
+    if (post.post_type === "project") return <ProjectCard key={post.id} post={post} myId={myId} />;
+    if (post.post_type === "offer")   return <OfferCard   key={post.id} post={post} myId={myId} />;
+    return null;
+  }
+
+  return (
+    <SwipeLayout>
+    <div className="flex min-h-screen bg-[#0c0c0e] pt-20">
+
+      <div className="flex flex-col flex-1 min-w-0">
+        
+        {/* Content */}
+        <main className="flex-1 px-8 pb-20 max-w-[680px] w-full mx-auto">
+
+          {/* Date + count */}
+          <div className="flex items-baseline justify-between pt-7 mb-5">
+            <p className="text-[11px] font-bold tracking-[0.08em] uppercase text-zinc-600">
+              {todayLabel()}
+            </p>
+            {!loading && (
+              <p className="text-[11px] text-zinc-700">
+                {posts.length} dispatches
+              </p>
+            )}
+          </div>
+
+          {/* Filter pills */}
+          <div className="flex gap-2 mb-8">
+            {(["all", "projects", "offers"] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-1.5 rounded-full border text-xs font-semibold transition-all duration-150
+                  ${filter === f
+                    ? "border-[#fffd01]/40 bg-[#fffd01]/10 text-[#fffd01]"
+                    : "border-white/[0.08] text-zinc-600 hover:text-zinc-400"
+                  }`}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Compose */}
+          <ComposeBar onPosted={() => fetchFeed(true)} />
+
+          {/* Posts */}
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <div className="w-5 h-5 border-2 border-white/10 border-t-[#fffd01] rounded-full animate-spin" />
+            </div>
+          ) : error ? (
+            <p className="text-center text-zinc-600 py-16 text-sm">{error}</p>
+          ) : posts.length === 0 ? (
+            <p className="text-center text-zinc-700 py-16 text-sm">
+              No posts yet. Be the first to share something.
+            </p>
+          ) : (
+            <div>
+              {/* post list — left padding for the hover ribbon */}
+              <div className="pl-5">
+                {posts.map(renderPost)}
+              </div>
+
+              {/* Load more — quiet, centered, typographic */}
+              {loadingMore && (
+                <div className="flex justify-center py-8">
+                  <div className="w-4 h-4 border-2 border-white/10 border-t-zinc-500 rounded-full animate-spin" />
+                </div>
+              )}
+
+              {!loadingMore && hasMore && (
+                <div className="flex items-center gap-4 py-8">
+                  <div className="flex-1 h-px bg-white/[0.05]" />
+                  <button
+                    onClick={fetchMore}
+                    className="flex items-center gap-1.5 text-[12px] font-semibold text-zinc-600 hover:text-zinc-400 transition-colors"
+                  >
+                    <ChevronDown size={13} />
+                    load more posts
+                  </button>
+                  <div className="flex-1 h-px bg-white/[0.05]" />
+                </div>
+              )}
+
+              {!hasMore && posts.length > 0 && (
+                <div className="flex items-center gap-4 py-8">
+                  <div className="flex-1 h-px bg-white/[0.05]" />
+                  <span className="text-[11px] text-zinc-700 font-medium">you're all caught up</span>
+                  <div className="flex-1 h-px bg-white/[0.05]" />
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+    </SwipeLayout>
+  );
+}

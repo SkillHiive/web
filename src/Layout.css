@@ -54,7 +54,7 @@
 }
 
 .form {
-  background: #0c0f14;
+  /* background: #0c0f14; */
 
   width: 320px;
   display: flex;
@@ -62,7 +62,7 @@
   gap: 15px;
   padding: 20px;
   position: relative;
-  border-radius: 25px;
+  /* border-radius: 25px; */
 
 }
 
@@ -98,7 +98,7 @@
   width: auto;
   height: 50px;
   text-indent: 15px;
-  border-radius: 15px;
+  border-radius: 0px;
   outline: none;
   background-color: transparent;
   border: 1px solid #21262e;
@@ -130,7 +130,7 @@
 .form .checkout-btn {
   margin-top: 20px;
   padding: 10px 0;
-  border-radius: 1em;
+  /* border-radius: 1em; */
   font-weight: 700;
   transition: all 0.3s cubic-bezier(0.15, 0.83, 0.66, 1);
   cursor: pointer;
@@ -179,6 +179,7 @@
 html {
 	cursor: none;
 	scroll-behavior: smooth;
+	scrollbar-gutter: stable both-edges; 
 }
 
 body {
@@ -356,6 +357,7 @@ ul {
     background-image: radial-gradient(rgb(48, 48, 48) 0.5px, #0A0A0A 0);
   background-size: 20px 20px;
   background-position: -19px -19px;
+  position: relative;
 }
 
 .hero-meta {
