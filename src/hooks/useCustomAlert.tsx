@@ -28,24 +28,6 @@ export interface UseCustomAlertConfig {
   useNative?: boolean;
 }
 
-const mapButtonsForNative = (
-  buttons: AlertButton[] | undefined,
-): {
-  text: string;
-  onPress?: () => void;
-  style?: "default" | "cancel" | "destructive";
-}[] =>
-  (buttons ?? [{ text: "OK" }]).map((b) => ({
-    text: b.text,
-    onPress: b.onPress,
-    style:
-      b.style === "destructive"
-        ? "destructive"
-        : b.style === "cancel"
-          ? "cancel"
-          : "default",
-  }));
-
 export const useCustomAlert = (config?: UseCustomAlertConfig) => {
   const useNative = config?.useNative ?? false;
 

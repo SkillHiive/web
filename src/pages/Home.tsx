@@ -103,7 +103,6 @@ export default function Home() {
     <div className="pt-20 bg-[#0c0c0e]" style={{ flex: 1, minHeight: "100vh", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "10px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
 
-        {/* Section header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
           <span style={{ fontSize: 17, fontWeight: 700, color: colors.text.primary }}>Work Rooms</span>
 
@@ -150,7 +149,10 @@ export default function Home() {
             ? new Date(room.session_started_at).getTime()
             : undefined;
 
-          const elapsed = sessionStartMs ? Date.now() - sessionStartMs : 0;
+          const getElapsed = (sessionStartMs, currentTimeMs) => 
+          sessionStartMs ? currentTimeMs - sessionStartMs : 0;
+
+          const elapsed = getElapsed(sessionStartMs, Date.now());
           const posInCycle = elapsed % CYCLE_MS;
           const phaseStartedAt = sessionStartMs
             ? Date.now() - posInCycle + (phase.phase === "break" ? FOCUS_MS : 0)

@@ -167,7 +167,7 @@ function ProjectPostCard({ post }: { post: RawPost }) {
 
       {img && (
         <div className="w-full aspect-[16/7] rounded-xl overflow-hidden bg-zinc-900 mb-3">
-          <img src={img} alt={pp.title} className="w-full h-full object-cover" loading="lazy" />
+          <img src={img} alt={pp.title} className="w-full h-full object-fit" loading="lazy" />
         </div>
       )}
 
@@ -513,7 +513,7 @@ export default function Profile() {
             </h2>
 
             {/* theme toggle */}
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <span className="text-[13px] text-zinc-400">Theme</span>
               <div className="flex gap-1 bg-white/[0.04] rounded-lg p-1">
                 {([
@@ -530,15 +530,15 @@ export default function Profile() {
                   </button>
                 ))}
               </div>
-            </div>
+            </div> */}
 
-            <div className="h-px bg-white/[0.06]" />
+            {/* <div className="h-px bg-white/[0.06]" /> */}
 
             {/* help */}
-            <button className="flex items-center gap-3 text-[13px] text-zinc-400 hover:text-zinc-200 transition-colors text-left">
+            {/* <button className="flex items-center gap-3 text-[13px] text-zinc-400 hover:text-zinc-200 transition-colors text-left">
               <HelpCircle size={15} className="text-zinc-600" />
               Help & Support
-            </button>
+            </button> */}
 
             <div className="h-px bg-white/[0.06]" />
 

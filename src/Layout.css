@@ -246,8 +246,8 @@ ul {
 	border-radius: 50%;
 	background: radial-gradient(
 		circle,
-		rgba(200, 197, 42, 0.12) 0%,
-		transparent 70%
+		rgba(200, 197, 42, 0.058) 0%,
+		transparent 50%
 	);
 	pointer-events: none;
 	z-index: 999;

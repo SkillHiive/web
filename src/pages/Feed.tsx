@@ -11,7 +11,6 @@ import SwipeLayout from "@/components/SwipeLayout";
 
 type PostType      = "project" | "offer" | "media";
 type ProjectStatus = "active" | "completed" | "paused";
-type OfferType     = "full_time" | "part_time" | "internship" | "contract";
 
 interface RawPost {
   id:             string;
@@ -47,10 +46,12 @@ interface RawPost {
 }
 
 // ─────────────────────────────────────────
-// CONSTANTS
+// CONSTANTS  (matched to mobile)
 // ─────────────────────────────────────────
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE        = 10;
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 min, same as mobile
+const POLL_INTERVAL    = 30 * 1000;     // 30s, same as mobile
 
 const FEED_QUERY = `
   id,
@@ -187,7 +188,6 @@ function ActionRow({
   const [likeCount, setLikeCount] = useState(likes);
   const [loading,   setLoading]   = useState(false);
 
-  // Check if current user already liked — mirrors mobile
   useEffect(() => {
     let cancelled = false;
     async function check() {
@@ -275,10 +275,8 @@ function ProjectCard({ post, myId }: { post: RawPost; myId: string | null }) {
 
   return (
     <article className="group relative py-7 border-b border-white/[0.06] last:border-b-0">
-      {/* hover accent ribbon */}
       <div className="absolute left-0 top-7 bottom-7 w-0.5 bg-[#fffd01] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
-      {/* Author row */}
       <div className="flex items-center gap-2.5 mb-4">
         <button
           onClick={() => post.profiles.id !== myId && navigate(`/profile/${post.profiles.id}`)}
@@ -297,12 +295,10 @@ function ProjectCard({ post, myId }: { post: RawPost; myId: string | null }) {
         </span>
       </div>
 
-      {/* Title */}
       <h2 className="text-[18px] font-black text-zinc-100 leading-snug tracking-tight mb-2">
         {pp.title}
       </h2>
 
-      {/* Meta: status + dates */}
       <div className="flex items-center gap-2 text-[11.5px] text-zinc-500 mb-3">
         <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
         <span className={`font-bold ${cfg.color}`}>{cfg.label}</span>
@@ -315,21 +311,18 @@ function ProjectCard({ post, myId }: { post: RawPost; myId: string | null }) {
         )}
       </div>
 
-      {/* Cover image */}
       {img && (
         <div className="w-full aspect-[16/7] rounded-xl overflow-hidden bg-zinc-900 mb-4">
-          <img src={img} alt={pp.title} className="w-full h-full object-cover" loading="lazy" />
+          <img src={img} alt={pp.title} className="w-full object-fit" loading="lazy" />
         </div>
       )}
 
-      {/* Description */}
       {pp.description && (
         <p className="text-[13.5px] text-zinc-400 leading-relaxed mb-2 line-clamp-3">
           {pp.description}
         </p>
       )}
 
-      {/* Caption */}
       {post.caption && (
         <p className="text-[13px] text-zinc-600 italic mb-1">"{post.caption}"</p>
       )}
@@ -355,10 +348,8 @@ function OfferCard({ post, myId }: { post: RawPost; myId: string | null }) {
 
   return (
     <article className="group relative py-7 border-b border-white/[0.06] last:border-b-0">
-      {/* hover accent ribbon */}
       <div className="absolute left-0 top-7 bottom-7 w-0.5 bg-green-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
-      {/* Author row */}
       <div className="flex items-center gap-2.5 mb-4">
         <button
           onClick={() => post.profiles.id !== myId && navigate(`/profile/${post.profiles.id}`)}
@@ -377,9 +368,7 @@ function OfferCard({ post, myId }: { post: RawPost; myId: string | null }) {
         </span>
       </div>
 
-      {/* Offer stamp */}
       <div className="relative rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 mb-3 overflow-hidden">
-        {/* left accent bar */}
         <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-green-400 rounded-l-xl" />
         <div className="pl-1">
           {op.company && (
@@ -418,20 +407,111 @@ function OfferCard({ post, myId }: { post: RawPost; myId: string | null }) {
 }
 
 // ─────────────────────────────────────────
-// COMPOSE BAR  (mirrors ShareBar.tsx flow)
+// MEDIA CARD  (was missing on web — mobile has MediaCard.tsx,
+// web's renderPost silently dropped "media" posts before)
 // ─────────────────────────────────────────
+
+function MediaCard({ post, myId }: { post: RawPost; myId: string | null }) {
+  const navigate = useNavigate();
+  const img = [...(post.post_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)[0]?.url;
+
+  return (
+    <article className="group relative py-7 border-b border-white/[0.06] last:border-b-0">
+      <div className="absolute left-0 top-7 bottom-7 w-0.5 bg-sky-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
+      <div className="flex items-center gap-2.5 mb-4">
+        <button
+          onClick={() => post.profiles.id !== myId && navigate(`/profile/${post.profiles.id}`)}
+          className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+        >
+          <Avatar name={post.profiles.username ?? "?"} src={post.profiles.avatar} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-zinc-200 truncate leading-none mb-0.5">
+              {post.profiles.username ?? "unknown"}
+            </p>
+            <p className="text-[11px] text-zinc-600">{timeAgo(post.created_at)}</p>
+          </div>
+        </button>
+        <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-sky-400/10 text-sky-400">
+          Media
+        </span>
+      </div>
+
+      {img && (
+        <div className="w-full rounded-xl overflow-hidden bg-zinc-900 mb-4">
+          <img src={img} alt="" className="w-full h-full object-fit max-h-[420px]" loading="lazy" />
+        </div>
+      )}
+
+      {post.caption && (
+        <p className="text-[13.5px] text-zinc-400 leading-relaxed mb-1">
+          {post.caption}
+        </p>
+      )}
+
+      <ActionRow
+        postId={post.id}
+        likes={post.likes_count}
+        comments={post.comments_count}
+        onCommentPress={() => navigate(`/post/${post.id}`)}
+      />
+    </article>
+  );
+}
+
+// ─────────────────────────────────────────
+// COMPOSE BAR  (mirrors ShareBar.tsx exactly — same fields, same insert logic)
+// ─────────────────────────────────────────
+
+type OfferType = "full_time" | "part_time" | "internship" | "contract";
+
+const OFFER_TYPE_OPTIONS: { value: OfferType; label: string }[] = [
+  { value: "full_time",  label: "Full-Time"  },
+  { value: "part_time",  label: "Part-Time"  },
+  { value: "internship", label: "Internship" },
+  { value: "contract",   label: "Contract"   },
+];
+
+async function uploadPostImage(file: File): Promise<string> {
+  const fileName = `${Date.now()}.jpg`;
+  const { error: uploadError } = await supabase.storage
+    .from("post-images")
+    .upload(fileName, file, { contentType: file.type || "image/jpeg" });
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage.from("post-images").getPublicUrl(fileName);
+  return data.publicUrl;
+}
 
 function ComposeBar({ onPosted }: { onPosted: () => void }) {
   const { profile } = useProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [open,    setOpen]    = useState(false);
   const [type,    setType]    = useState<PostType>("project");
   const [caption, setCaption] = useState("");
-  const [title,   setTitle]   = useState("");
-  const [company, setCompany] = useState("");
-  const [role,    setRole]    = useState("");
   const [posting, setPosting] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
+
+  // project fields
+  const [title,            setTitle]            = useState("");
+  const [description,      setDescription]      = useState("");
+  const [currentlyWorking, setCurrentlyWorking] = useState(true);
+  const [startedAt,        setStartedAt]        = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
+  const [endedAt,          setEndedAt]          = useState<string>("");
+
+  // offer fields
+  const [company,     setCompany]     = useState("");
+  const [role,        setRole]        = useState("");
+  const [salaryRange, setSalaryRange] = useState("");
+  const [location,    setLocation]    = useState("");
+  const [offerType,   setOfferType]   = useState<OfferType>("full_time");
+
+  // image
+  const [imageFile,    setImageFile]    = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const canPost =
     caption.trim().length > 0 &&
@@ -439,8 +519,29 @@ function ComposeBar({ onPosted }: { onPosted: () => void }) {
     (type !== "offer"   || (company.trim().length > 0 && role.trim().length > 0));
 
   function reset() {
-    setCaption(""); setTitle(""); setCompany(""); setRole("");
-    setError(null); setType("project"); setOpen(false);
+    setCaption("");
+    setTitle("");
+    setDescription("");
+    setCurrentlyWorking(true);
+    setStartedAt(new Date().toISOString().split("T")[0]);
+    setEndedAt("");
+    setCompany("");
+    setRole("");
+    setSalaryRange("");
+    setLocation("");
+    setOfferType("full_time");
+    setImageFile(null);
+    setImagePreview(null);
+    setError(null);
+    setType("project");
+    setOpen(false);
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   }
 
   async function handlePost() {
@@ -457,26 +558,37 @@ function ComposeBar({ onPosted }: { onPosted: () => void }) {
         .select("id")
         .single();
       if (postErr) throw postErr;
+      const postId = created.id;
 
       if (type === "project") {
         const { error: e } = await supabase.from("project_posts").insert({
-          post_id:     created.id,
+          post_id:     postId,
           title:       title.trim(),
-          description: null,
-          started_at:  null,
-          ended_at:    null,
-          status:      "active",
+          description: description.trim() || null,
+          started_at:  startedAt || null,
+          ended_at:    currentlyWorking || !endedAt ? null : endedAt,
+          status:      currentlyWorking ? "active" : "completed",
         });
         if (e) throw e;
       }
 
       if (type === "offer") {
         const { error: e } = await supabase.from("offer_posts").insert({
-          post_id:  created.id,
-          company:  company.trim() || null,
-          role:     role.trim()    || null,
-          offer_type: "full_time",
+          post_id:      postId,
+          company:      company.trim()     || null,
+          role:         role.trim()        || null,
+          salary_range: salaryRange.trim() || null,
+          location:     location.trim()    || null,
+          offer_type:   offerType,
         });
+        if (e) throw e;
+      }
+
+      if (imageFile) {
+        const publicUrl = await uploadPostImage(imageFile);
+        const { error: e } = await supabase
+          .from("post_images")
+          .insert({ post_id: postId, url: publicUrl, sort_order: 0 });
         if (e) throw e;
       }
 
@@ -490,6 +602,9 @@ function ComposeBar({ onPosted }: { onPosted: () => void }) {
   }
 
   const displayName = profile?.username ?? profile?.displayname ?? "ME";
+
+  const fieldClass =
+    "w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-white/[0.15] transition-colors";
 
   if (!open) {
     return (
@@ -537,35 +652,6 @@ function ComposeBar({ onPosted }: { onPosted: () => void }) {
         ))}
       </div>
 
-      {/* Conditional extra fields */}
-      {type === "project" && (
-        <input
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          placeholder="Project title *"
-          maxLength={80}
-          className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-white/[0.15] transition-colors font-semibold"
-        />
-      )}
-      {type === "offer" && (
-        <div className="flex gap-2">
-          <input
-            value={company}
-            onChange={e => setCompany(e.target.value)}
-            placeholder="Company *"
-            maxLength={80}
-            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-white/[0.15] transition-colors"
-          />
-          <input
-            value={role}
-            onChange={e => setRole(e.target.value)}
-            placeholder="Role *"
-            maxLength={80}
-            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-white/[0.15] transition-colors"
-          />
-        </div>
-      )}
-
       {/* Caption */}
       <div>
         <textarea
@@ -578,17 +664,172 @@ function ComposeBar({ onPosted }: { onPosted: () => void }) {
           }
           maxLength={500}
           rows={3}
-          className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-[13.5px] text-zinc-200 placeholder-zinc-600 outline-none focus:border-white/[0.15] transition-colors resize-none leading-relaxed"
+          className={`${fieldClass} resize-none leading-relaxed`}
         />
         <p className={`text-right text-[11px] mt-1 ${caption.length > 400 ? "text-amber-400" : "text-zinc-700"}`}>
           {caption.length}/500
         </p>
       </div>
 
+      {/* ── PROJECT FIELDS ── */}
+      {type === "project" && (
+        <div className="flex flex-col gap-3">
+          <input
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="Project title *"
+            maxLength={80}
+            className={`${fieldClass} font-semibold`}
+          />
+
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder="Tech stack, what you built, key learnings..."
+            maxLength={300}
+            rows={3}
+            className={`${fieldClass} resize-none leading-relaxed`}
+          />
+
+          <div className="flex gap-3">
+            <label className="flex-1 flex flex-col gap-1">
+              <span className="text-[11px] text-zinc-600">Started</span>
+              <input
+                type="date"
+                value={startedAt}
+                onChange={e => setStartedAt(e.target.value)}
+                max={endedAt || undefined}
+                className={fieldClass}
+              />
+            </label>
+            <label className={`flex-1 flex flex-col gap-1 ${currentlyWorking ? "opacity-45" : ""}`}>
+              <span className="text-[11px] text-zinc-600">Ended</span>
+              <input
+                type="date"
+                value={endedAt}
+                disabled={currentlyWorking}
+                onChange={e => setEndedAt(e.target.value)}
+                min={startedAt || undefined}
+                max={new Date().toISOString().split("T")[0]}
+                className={fieldClass}
+              />
+            </label>
+          </div>
+
+          <label className="flex items-center gap-2.5 py-1 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={currentlyWorking}
+              onChange={e => {
+                setCurrentlyWorking(e.target.checked);
+                if (e.target.checked) setEndedAt("");
+              }}
+              className="w-4 h-4 accent-[#fffd01]"
+            />
+            <span className="text-[13.5px] text-zinc-400">I'm currently working on this</span>
+          </label>
+        </div>
+      )}
+
+      {/* ── OFFER FIELDS ── */}
+      {type === "offer" && (
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-2 flex-wrap">
+            {OFFER_TYPE_OPTIONS.map(ot => (
+              <button
+                key={ot.value}
+                onClick={() => setOfferType(ot.value)}
+                className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all duration-150
+                  ${offerType === ot.value
+                    ? "border-[#fffd01]/40 bg-[#fffd01]/10 text-[#fffd01]"
+                    : "border-white/[0.08] text-zinc-500 hover:text-zinc-300"
+                  }`}
+              >
+                {ot.label}
+              </button>
+            ))}
+          </div>
+
+          <input
+            value={company}
+            onChange={e => setCompany(e.target.value)}
+            placeholder="Company *"
+            maxLength={80}
+            className={fieldClass}
+          />
+          <input
+            value={role}
+            onChange={e => setRole(e.target.value)}
+            placeholder="Role / Position *"
+            maxLength={80}
+            className={fieldClass}
+          />
+          <div className="flex gap-2">
+            <input
+              value={salaryRange}
+              onChange={e => setSalaryRange(e.target.value)}
+              placeholder="Salary range"
+              maxLength={40}
+              className={`flex-1 ${fieldClass}`}
+            />
+            <input
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              placeholder="Location"
+              maxLength={60}
+              className={`flex-1 ${fieldClass}`}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Cover image */}
+      <div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        {imagePreview ? (
+          <div className="relative rounded-xl overflow-hidden">
+            <img src={imagePreview} alt="" className="w-full h-[200px] object-fit" />
+            <button
+              onClick={() => { setImageFile(null); setImagePreview(null); }}
+              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+            >
+              <X size={13} strokeWidth={2.5} />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full flex flex-col items-center gap-1.5 py-6 rounded-xl border border-dashed border-white/[0.1] hover:border-white/[0.2] transition-colors"
+          >
+            <Camera size={18} className="text-zinc-600" />
+            <span className="text-[13px] text-zinc-600">Add cover image</span>
+            <span className="text-[11px] text-zinc-700">Optional · 16:9</span>
+          </button>
+        )}
+      </div>
+
       {/* Error */}
       {error && (
         <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
           {error}
+        </p>
+      )}
+
+      {/* Validation hints — matches mobile */}
+      {type === "project" && !title.trim() && caption.trim().length > 0 && (
+        <p className="text-[11px] text-zinc-600 text-center -mt-2">
+          Project title is required to publish
+        </p>
+      )}
+      {type === "offer" && caption.trim().length > 0 && (!company.trim() || !role.trim()) && (
+        <p className="text-[11px] text-zinc-600 text-center -mt-2">
+          Company and role are required to publish
         </p>
       )}
 
@@ -615,96 +856,6 @@ function ComposeBar({ onPosted }: { onPosted: () => void }) {
 }
 
 // ─────────────────────────────────────────
-// ICON RAIL NAV
-// ─────────────────────────────────────────
-
-function Rail() {
-  const navigate = useNavigate();
-  const { profile } = useProfile();
-  const displayName = profile?.username ?? profile?.displayname ?? "ME";
-
-  const navItems = [
-    {
-      label: "Feed",
-      active: true,
-      onClick: () => {},
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-        </svg>
-      ),
-    },
-    {
-      label: "Profile",
-      active: false,
-      onClick: () => profile && navigate(`/profile/${profile.id}`),
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-      ),
-    },
-    {
-      label: "Projects",
-      active: false,
-      onClick: () => navigate("/projects"),
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
-        </svg>
-      ),
-    },
-    {
-      label: "Saved",
-      active: false,
-      onClick: () => navigate("/saved"),
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-        </svg>
-      ),
-    },
-  ];
-
-  return (
-    <aside className="sticky top-0 h-screen w-14 flex flex-col items-center py-5 border-r border-white/[0.06] bg-[#0c0c0e] z-50 gap-1 flex-shrink-0">
-      {/* Logo */}
-      <div className="w-8 h-8 rounded-lg bg-[#fffd01] flex items-center justify-center mb-5 flex-shrink-0">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0c0c0e" strokeWidth="2.5">
-          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" />
-        </svg>
-      </div>
-
-      {navItems.map(item => (
-        <button
-          key={item.label}
-          onClick={item.onClick}
-          title={item.label}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-150
-            ${item.active
-              ? "bg-[#fffd01]/10 text-[#fffd01]"
-              : "text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.05]"
-            }`}
-        >
-          {item.icon}
-        </button>
-      ))}
-
-      <div className="flex-1" />
-
-      <Avatar
-        name={displayName}
-        src={profile?.avatar ?? null}
-        size="w-8 h-8"
-        textSize="text-[10px]"
-        ring
-      />
-    </aside>
-  );
-}
-
-// ─────────────────────────────────────────
 // FEED PAGE
 // ─────────────────────────────────────────
 
@@ -720,7 +871,9 @@ export default function Feed() {
   const [filter,      setFilter]      = useState<"all" | "projects" | "offers">("all");
 
   const isFetchingMore = useRef(false);
-  const lastFetchedRef = useRef<number>(0);
+  const lastFetchedRef  = useRef<number>(0);
+  const intervalRef     = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollRef         = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── initial fetch ──
   const fetchFeed = useCallback(async (isRefresh = false) => {
@@ -752,6 +905,12 @@ export default function Feed() {
     setLoading(false);
   }, [filter]);
 
+  // ── keep a ref to the latest fetchFeed so interval/poll callbacks never go stale ──
+  const fetchFeedRef = useRef(fetchFeed);
+  useEffect(() => {
+    fetchFeedRef.current = fetchFeed;
+  }, [fetchFeed]);
+
   // ── load more (cursor pagination — same as mobile) ──
   const fetchMore = useCallback(async () => {
     if (isFetchingMore.current || !hasMore || !cursor) return;
@@ -781,12 +940,48 @@ export default function Feed() {
     isFetchingMore.current = false;
   }, [cursor, hasMore, filter]);
 
-  useEffect(() => { fetchFeed(); }, [fetchFeed]);
+  // ── initial load whenever filter changes ──
+  useEffect(() => {
+    fetchFeed();
+  }, [fetchFeed]);
+
+  // ── polling every 30s, same cadence as mobile ──
+  useEffect(() => {
+    pollRef.current = setInterval(() => {
+      fetchFeedRef.current(true);
+    }, POLL_INTERVAL);
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
+
+  // ── 5 min auto-refresh + refresh-on-tab-focus, mirrors mobile's AppState logic ──
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      fetchFeedRef.current(true);
+    }, REFRESH_INTERVAL);
+
+    function handleVisibility() {
+      if (document.visibilityState === "visible") {
+        const elapsed = Date.now() - lastFetchedRef.current;
+        if (elapsed >= REFRESH_INTERVAL) fetchFeedRef.current(true);
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
 
   function renderPost(post: RawPost) {
     const myId = profile?.id ?? null;
     if (post.post_type === "project") return <ProjectCard key={post.id} post={post} myId={myId} />;
     if (post.post_type === "offer")   return <OfferCard   key={post.id} post={post} myId={myId} />;
+    if (post.post_type === "media")   return <MediaCard   key={post.id} post={post} myId={myId} />;
     return null;
   }
 
@@ -795,11 +990,9 @@ export default function Feed() {
     <div className="flex min-h-screen bg-[#0c0c0e] pt-20">
 
       <div className="flex flex-col flex-1 min-w-0">
-        
-        {/* Content */}
+
         <main className="flex-1 px-8 pb-20 max-w-[680px] w-full mx-auto">
 
-          {/* Date + count */}
           <div className="flex items-baseline justify-between pt-7 mb-5">
             <p className="text-[11px] font-bold tracking-[0.08em] uppercase text-zinc-600">
               {todayLabel()}
@@ -811,7 +1004,6 @@ export default function Feed() {
             )}
           </div>
 
-          {/* Filter pills */}
           <div className="flex gap-2 mb-8">
             {(["all", "projects", "offers"] as const).map(f => (
               <button
@@ -828,10 +1020,8 @@ export default function Feed() {
             ))}
           </div>
 
-          {/* Compose */}
           <ComposeBar onPosted={() => fetchFeed(true)} />
 
-          {/* Posts */}
           {loading ? (
             <div className="flex justify-center py-16">
               <div className="w-5 h-5 border-2 border-white/10 border-t-[#fffd01] rounded-full animate-spin" />
@@ -844,12 +1034,10 @@ export default function Feed() {
             </p>
           ) : (
             <div>
-              {/* post list — left padding for the hover ribbon */}
               <div className="pl-5">
                 {posts.map(renderPost)}
               </div>
 
-              {/* Load more — quiet, centered, typographic */}
               {loadingMore && (
                 <div className="flex justify-center py-8">
                   <div className="w-4 h-4 border-2 border-white/10 border-t-zinc-500 rounded-full animate-spin" />
