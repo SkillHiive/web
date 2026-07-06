@@ -1,10 +1,4 @@
-import { useState } from "react";
 import { LinkNav } from "./LinkNav";
-import { useLocation } from "react-router";
-import { KineticText } from "./ui/kinetic-text";
-import IOS from "@/assets/ios_download.webp";
-
-import ANDROID from "@/assets/android_download.png";
 
 const Nav = () => {
   return (

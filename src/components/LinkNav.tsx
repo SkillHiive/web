@@ -151,7 +151,7 @@ export const Tab = ({
   index,
   tabRefs,
   setPosition,
-  position,
+  // position,
   isActiveByCursor,
 }: TabProps & {
   isActiveByCursor: (el: HTMLElement) => boolean;

@@ -149,7 +149,7 @@ export default function Home() {
             ? new Date(room.session_started_at).getTime()
             : undefined;
 
-          const getElapsed = (sessionStartMs, currentTimeMs) => 
+          const getElapsed = (sessionStartMs:any, currentTimeMs:any) => 
           sessionStartMs ? currentTimeMs - sessionStartMs : 0;
 
           const elapsed = getElapsed(sessionStartMs, Date.now());

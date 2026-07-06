@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/hooks/profileContext";
-import { Heart, MessageCircle, Share2, Briefcase, FileText, Camera, Plus, X, ChevronDown } from "lucide-react";
+import { Briefcase, FileText, Camera, Plus, X, ChevronDown } from "lucide-react";
 import SwipeLayout from "@/components/SwipeLayout";
 import ActionRow from "@/components/ActionRow";
 

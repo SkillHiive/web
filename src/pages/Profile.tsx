@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/hooks/profileContext";
-import { Edit2, LogOut, HelpCircle, Sun, Moon, Monitor, ChevronDown } from "lucide-react";
+import { Edit2, LogOut, ChevronDown } from "lucide-react";
 import SwipeLayout from "@/components/SwipeLayout";
 import ActionRow from "@/components/ActionRow";
 

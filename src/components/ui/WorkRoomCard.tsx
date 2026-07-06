@@ -235,7 +235,7 @@ const BreakCard = memo(function BreakCard({ name, tag, members = [], breakSecond
 
 // ─── EmptyCard ───────────────────────────────────────────────────────────────
 
-const EmptyCard = memo(function EmptyCard({ name, tag, onStart, style }: WorkRoomCardProps) {
+const EmptyCard = memo(function EmptyCard({ name, tag, style }: WorkRoomCardProps) {
   return (
     <Card style={style}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 14 }}>

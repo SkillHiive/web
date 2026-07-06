@@ -6,7 +6,7 @@ import * as Page from "./pages";
 import * as Comp from "./components";
 import Cursor from "./components/Cursor";
 import { AuthGate } from "./components/AuthGate";
-import { ProfileProvider, useProfile } from "./hooks/profileContext";
+import { ProfileProvider } from "./hooks/profileContext";
 import { supabase } from "./lib/supabase";
 
 const ROUTE_ORDER = ["/", "/learn", "/profile"];
