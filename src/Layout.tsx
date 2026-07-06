@@ -1,5 +1,5 @@
-import { Routes, Route, useLocation, useNavigate } from "react-router"; 
-import { AnimatePresence } from "framer-motion"; 
+import { Routes, Route, useLocation, useNavigate } from "react-router";
+import { AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import "./Layout.css";
 import * as Page from "./pages";
@@ -27,53 +27,57 @@ function AnimatedRoutes() {
 
   return (
     <ProfileProvider>
-    <AnimatePresence mode="wait" custom={direction}>
-      <Routes location={location} key={location.pathname}>
-  <Route
-    path="/"
-    element={
-      <AuthGate require="guest">
-        <Page.Landing />
-      </AuthGate>
-    }
-  />
-  <Route
-    path="/login"
-    element={
-      <AuthGate require="guest">
-        <Page.Sign />
-      </AuthGate>
-    }
-  />
-  <Route
-    path="/home"
-    element={
-      <AuthGate require="auth">
-        <Page.Home />
-      </AuthGate>
-    }
-  />
-  <Route path="/learn" element={
-    <AuthGate require="auth">
-    <Page.Learn />
-    </AuthGate>
-  } />
-  <Route path="/feed" element={<Page.Feed />} />
-  <Route path="/profile" element={
-    <AuthGate require="auth">
-    <Page.Profile />
-    </AuthGate>
-    } />
-<Route 
-          path="/rooms/:roomName" 
-          element={ 
-            <AuthGate require="auth"> 
-              <Page.Room supabase={supabase} onLeave={() => router("/")} />
-            </AuthGate> 
-          } 
-        />
-</Routes>
-    </AnimatePresence>
+      <AnimatePresence mode="wait" custom={direction}>
+        <Routes location={location} key={location.pathname}>
+          <Route
+            path="/"
+            element={
+              <AuthGate require="guest">
+                <Page.Landing />
+              </AuthGate>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <AuthGate require="guest">
+                <Page.Sign />
+              </AuthGate>
+            }
+          />
+          <Route
+            path="/home"
+            element={
+              <AuthGate require="auth">
+                <Page.Home />
+              </AuthGate>
+            }
+          />
+          <Route path="/learn" element={
+            <AuthGate require="auth">
+              <Page.Learn />
+            </AuthGate>
+          } />
+          <Route path="/feed" element={
+            <AuthGate require="auth">
+              <Page.Feed />
+            </AuthGate>
+          } />
+          <Route path="/profile" element={
+            <AuthGate require="auth">
+              <Page.Profile />
+            </AuthGate>
+          } />
+          <Route
+            path="/rooms/:roomName"
+            element={
+              <AuthGate require="auth">
+                <Page.Room supabase={supabase} onLeave={() => router("/")} />
+              </AuthGate>
+            }
+          />
+        </Routes>
+      </AnimatePresence>
     </ProfileProvider>
   );
 }

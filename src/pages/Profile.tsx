@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/hooks/profileContext";
 import { Edit2, LogOut, HelpCircle, Sun, Moon, Monitor, ChevronDown } from "lucide-react";
 import SwipeLayout from "@/components/SwipeLayout";
+import ActionRow from "@/components/ActionRow";
 
 // ─────────────────────────────────────────
 // TYPES
@@ -139,6 +140,7 @@ function ProjectPostCard({ post }: { post: RawPost }) {
   const cfg = STATUS_CFG[pp.status];
   const img = [...(post.post_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)[0]?.url;
   const dur = calcDuration(pp.started_at, pp.ended_at);
+  const navigate = useNavigate();
 
   return (
     <article className="py-6 border-b border-white/[0.06] last:border-b-0">
@@ -166,7 +168,7 @@ function ProjectPostCard({ post }: { post: RawPost }) {
       </div>
 
       {img && (
-        <div className="w-full aspect-[16/7] rounded-xl overflow-hidden bg-zinc-900 mb-3">
+        <div className="w-full rounded-xl overflow-hidden bg-zinc-900 mb-3">
           <img src={img} alt={pp.title} className="w-full h-full object-fit" loading="lazy" />
         </div>
       )}
@@ -178,10 +180,12 @@ function ProjectPostCard({ post }: { post: RawPost }) {
         <p className="text-[12.5px] text-zinc-600 italic">"{post.caption}"</p>
       )}
 
-      <div className="flex items-center gap-3 mt-3 text-[12px] text-zinc-600">
-        <span>♡ {post.likes_count > 0 ? post.likes_count : "Like"}</span>
-        <span>◯ {post.comments_count > 0 ? post.comments_count : "Comment"}</span>
-      </div>
+      <ActionRow
+        postId={post.id}
+        likes={post.likes_count}
+        comments={post.comments_count}
+        onCommentPress={() => navigate(`/post/${post.id}`)}
+      />
     </article>
   );
 }
@@ -460,7 +464,6 @@ export default function Profile() {
           <div className="flex bg-white/[0.03] border border-white/[0.06] rounded-xl py-4 mb-6">
             <StatItem value={allyCount} label="Allied With" divider />
             <StatItem value={posts.length} label="Posts" divider />
-            <StatItem value="12" label="Streak" />
           </div>
 
           {/* ── POSTS ── */}
