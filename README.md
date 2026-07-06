@@ -1,51 +1,51 @@
-# SkillHive Mobile
+# SkillHive Web
 
-If you are reading this, you are looking at the mobile client for SkillHive.
+If you are reading this, you are looking at the web foundation of SkillHive.
 
-SkillHive is a learning and community platform built for people who want to connect, collaborate, and grow together. This repository contains the mobile app experience: fast, focused, and designed for people interacting in shorter sessions throughout the day.
+SkillHive is a learning and community platform for people who want to connect, collaborate, and grow together. This repository contains the browser experience: the main product surface for discovery, learning flows, social interaction, and account-level platform management.
 
-This repo is tightly connected to **SkillHive-Web**. The web app carries the broader platform surface, while this mobile app translates the same product into a native-first experience that feels right on phones and tablets.
+This repo is closely related to **SkillHive-Mobile**. Think of this codebase as the broad, desktop-capable platform layer, while the mobile repo delivers a focused, native-first experience for users on the go. Both should feel like the same product, not two disconnected apps.
 
 ## What this repository is responsible for
 
-This mobile repo is where we deliver SkillHive for handheld devices, including:
+This web repo is where we shape the core product experience in a browser context, including:
 
-- mobile-first onboarding and authentication flows
-- learning and community interactions optimized for smaller screens
-- push-aware, session-friendly engagement patterns
-- native UX conventions, gestures, and navigation structures
-- performance-conscious rendering for real-world devices and networks
+- onboarding and account lifecycle flows
+- learning content discovery and participation
+- community and collaboration interfaces
+- platform-level UX patterns and reusable UI primitives
+- integrations needed for a full web experience
 
-If a feature is used frequently, time-sensitively, or in quick bursts, mobile experience quality here is critical.
+If you are implementing a feature that requires larger information density, advanced navigation, or workspace-style usage, this is usually the right place.
 
-## How this repo relates to SkillHive-Web
+## How this repo relates to SkillHive-Mobile
 
-The relationship is product-level, not just technical:
+The relationship is intentional:
 
-- **SkillHive-Web** usually defines broad workflow depth and platform breadth.
-- **SkillHive-Mobile** delivers those same core capabilities in a native interaction model.
-- Users should never have to “relearn” SkillHive when switching devices.
-- Naming, domain rules, and key user flows should remain aligned across both repos.
+- **SkillHive-Web** is the broad platform surface and often the fastest place to introduce full-featured workflows.
+- **SkillHive-Mobile** is the mobile app companion, optimized for everyday usage, quick interaction loops, and device-native behavior.
+- Product behavior, terminology, and user expectations should stay consistent between the two repos.
+- Feature rollout may happen in one repo first, but parity planning should always be explicit.
 
-When web evolves a core flow, mobile should either ship parity or explicitly track the gap with a clear plan.
+If you change product language, domain logic assumptions, or API contracts here, consider the downstream impact on mobile before merging.
 
 ## Tech profile
 
-This repository is implemented in **TypeScript**.
+This repository is primarily implemented in **TypeScript** with styling in **CSS**.
 
-Contributions should preserve strict typing, predictable state transitions, and maintainable component architecture suitable for long-term mobile product evolution.
+That means the default expectation for contributions is typed, maintainable frontend architecture with clear component boundaries and predictable styling behavior.
 
 ## Local development
 
-Clone and install:
+Clone the repository and install dependencies with your preferred package manager:
 
 ```bash
-git clone https://github.com/TheLinuxGuy-ssh/SkillHive-Mobile.git
-cd SkillHive-Mobile
+git clone https://github.com/TheLinuxGuy-ssh/SkillHive-Web.git
+cd SkillHive-Web
 # npm install | pnpm install | yarn install
 ```
 
-Run the app in development:
+Start the development server using your project’s script conventions:
 
 ```bash
 # npm run dev
@@ -53,47 +53,47 @@ Run the app in development:
 # yarn dev
 ```
 
-Use the scripts defined in `package.json` for platform-specific runs, builds, tests, and linting.
-
-Before opening a PR, validate:
+Build and validate before opening a pull request:
 
 ```bash
+# npm run build
 # npm run test
 # npm run lint
-# npm run build
 ```
+
+If script names differ, use the scripts defined in `package.json`.
 
 ## Engineering expectations
 
-For mobile contributions, hold the line on product clarity and runtime quality.
+When contributing here, optimize for long-term product quality, not short-term patching.
 
-- Build for constrained environments (battery, memory, variable network conditions).
-- Keep interactions obvious and touch-friendly.
-- Minimize avoidable re-renders and startup overhead.
-- Maintain clean separation between presentation, state, and service layers.
-- Treat offline/error states as first-class user experience concerns.
+- Keep UI and domain logic separated.
+- Preserve type safety; avoid bypassing types unless there is a documented reason.
+- Prefer composable components over one-off screens.
+- Treat accessibility, performance, and responsiveness as baseline requirements.
+- Document any behavior that mobile teams need to mirror.
 
-## Cross-repo contribution workflow (Mobile + Web)
+## Cross-repo contribution workflow (Web + Mobile)
 
-When shipping a feature in mobile, always check:
+For any non-trivial feature, ask and answer these questions in your PR:
 
-1. Is behavior consistent with SkillHive-Web?
-2. Are shared API assumptions still true?
-3. Is terminology/copy aligned with web?
-4. If parity is incomplete, is there a linked tracking issue?
+1. Does this change alter shared product behavior?
+2. Does SkillHive-Mobile need a matching implementation or follow-up issue?
+3. Are API or data-shape assumptions still valid for both clients?
+4. Are copy and interaction patterns still consistent across platforms?
 
-The goal is one SkillHive product expressed through two platform-appropriate clients.
+This habit keeps SkillHive coherent as one product.
 
 ## Pull requests
 
 A strong PR in this repository includes:
 
-- concise summary of user-facing impact
-- screenshots or screen recordings for UI changes
-- device/testing notes (OS/version/form factor where relevant)
-- performance considerations for complex screens
-- explicit references to related web changes or parity tasks
+- clear problem statement and user impact
+- screenshots or recordings for UI changes
+- notes about mobile implications when relevant
+- migration notes for breaking changes
+- explicit follow-up tasks when parity is deferred
 
 ## License
 
-This project is subjected to the PolyForm Noncommercial License 1.0.0
+Add your project license details here (for example, MIT, Apache-2.0, or proprietary internal license), and keep it consistent with the mobile repo where appropriate.
