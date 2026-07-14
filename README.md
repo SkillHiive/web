@@ -42,23 +42,21 @@ Clone the repository and install dependencies with your preferred package manage
 ```bash
 git clone https://github.com/TheLinuxGuy-ssh/SkillHive-Web.git
 cd SkillHive-Web
-# npm install | pnpm install | yarn install
+npm install
 ```
 
 Start the development server using your project’s script conventions:
 
 ```bash
-# npm run dev
-# pnpm dev
-# yarn dev
+npm run dev
 ```
 
 Build and validate before opening a pull request:
 
 ```bash
-# npm run build
-# npm run test
-# npm run lint
+npm run build
+npm run test
+npm run lint
 ```
 
 If script names differ, use the scripts defined in `package.json`.
@@ -96,4 +94,4 @@ A strong PR in this repository includes:
 
 ## License
 
-Add your project license details here (for example, MIT, Apache-2.0, or proprietary internal license), and keep it consistent with the mobile repo where appropriate.
+AGPLv3
