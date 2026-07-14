@@ -1,5 +1,5 @@
 import { LinkNav } from "./LinkNav";
-import NotificationBell from "./NotificationBell";
+// import NotificationBell from "./NotificationBell";
 
 const Nav = () => {
   return (
