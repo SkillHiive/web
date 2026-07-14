@@ -10,3 +10,5 @@ export { default as Register } from "./Register";
 export { default as Post } from "./Post";
 export { default as Notifications } from "./Notifications";
 export { default as PublicProfile } from "./PublicProfile";
+export { default as SettingsProfile } from "./SettingsProfile";
+export { default as NotFound } from "./NotFound";

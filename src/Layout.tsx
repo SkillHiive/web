@@ -99,6 +99,15 @@ function AnimatedRoutes() {
               </AuthGate>
             }
           />
+          <Route
+            path="/settings/profile"
+            element={
+              <AuthGate require="auth">
+                <Page.SettingsProfile />
+              </AuthGate>
+            }
+          />
+          <Route path="*" element={<Page.NotFound />} />
         </Routes>
       </AnimatePresence>
     </ProfileProvider>

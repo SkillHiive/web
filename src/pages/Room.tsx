@@ -19,6 +19,8 @@ import type { Participant, RoomOptions } from "livekit-client";
 import { RoomLobby } from "@/hooks/RoomLobby";
 import { useParams } from "react-router";
 import { useProfile } from "@/hooks/profileContext";
+import { useRoomPresence } from "@/hooks/useRoomPresence";
+import { useRoomSession } from "@/hooks/useRoomSession";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const LIVEKIT_URL = "wss://rooms.skillhiive.com";
@@ -174,7 +176,6 @@ export default function RoomScreen({
   onLeave,
   supabase,
   colors = defaultColors,
-  phaseState = { phase: "waiting", remainingSeconds: 0, micAllowed: true },
 }: RoomScreenProps) {
   const { roomName } = useParams<{ roomName: string }>();
   const { profile } = useProfile();
@@ -195,6 +196,15 @@ export default function RoomScreen({
   const cubicleRef = useRef<CubicleState>({ status: "idle" });
   const shownCubicleAlertRef = useRef<string | null>(null);
   const prevPhaseRef = useRef<string>("waiting");
+
+  // ── Presence + session ──────────────────────────────────────────────────────
+  // Register this user in `room_participants` (which populates the `active_rooms`
+  // view others read) and start/track the focus-break session.
+  useRoomPresence(roomName, () => {
+    intentionalLeaveRef.current = true;
+    setError("Couldn't join the room. Please try again.");
+  });
+  const { phaseState } = useRoomSession(roomName ?? "");
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [token, setToken] = useState<string | null>(null);

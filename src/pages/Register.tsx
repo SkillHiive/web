@@ -1,5 +1,6 @@
 import { useState, useCallback, type ReactNode } from "react";
 import { Link } from "react-router";
+import { supabase } from "@/lib/supabase";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type FieldId = "displayName" | "username" | "email" | "password" | "confirm";
@@ -439,22 +440,39 @@ export default function SignUpScreen({ onBack, onSubmit }: SignUpScreenProps) {
     try {
       if (onSubmit) {
         await onSubmit(values);
+        setSubmitted(true);
       } else {
-        // Default: wire your Supabase call here
-        // const { error } = await supabase.auth.signUp({
-        //   email: values.email.trim(),
-        //   password: values.password,
-        //   options: {
-        //     data: {
-        //       username:    values.username.trim().toLowerCase(),
-        //       displayname: values.displayName.trim(),
-        //     },
-        //   },
-        // });
-        // if (error) throw error;
-        await new Promise<void>((r) => setTimeout(r, 1100));
+        // Same transaction as the mobile app: create the auth user (carrying
+        // username + displayname as metadata), then insert the profile row.
+        const { data, error } = await supabase.auth.signUp({
+          email: values.email.trim(),
+          password: values.password,
+          options: {
+            data: {
+              username: values.username.trim().toLowerCase(),
+              displayname: values.displayName.trim(),
+            },
+          },
+        });
+        if (error) throw error;
+        if (!data.user) throw new Error("No user returned.");
+
+        const { error: profileError } = await supabase.from("profiles").insert({
+          id: data.user.id,
+          username: values.username.trim(),
+          displayname: values.displayName.trim(),
+          avatar: null,
+          created_at: new Date().toISOString(),
+        });
+        // A DB trigger may already create the profile from metadata; ignore a
+        // duplicate/insert error rather than failing the whole signup.
+        if (profileError) console.warn(profileError.message);
+
+        // If email confirmation is disabled, signUp returns a session and the
+        // guest AuthGate redirects to /home automatically. Otherwise, show the
+        // "confirm your email" screen.
+        if (!data.session) setSubmitted(true);
       }
-      setSubmitted(true);
     } catch (err) {
       setSubmitErr(
         err instanceof Error ? err.message : "Something went wrong. Try again.",
