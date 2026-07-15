@@ -5,10 +5,11 @@ import { Text } from "@/components/ui";
 /* ---------------------------------- Types --------------------------------- */
 
 interface RepoCardData {
-  slug: string;
+  name: string;
   description: string;
+  stargazers_count: number;
   language: string;
-  stars: number;
+  svn_url: string;
   isFallback?: boolean;
 }
 
@@ -180,18 +181,9 @@ function useOrgRepos(fallback: RepoCardData[]) {
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error("unexpected response");
 
-        const live: RepoCardData[] = data
-          .filter((r: any) => !r.fork)
-          .sort((a: any, b: any) => b.stargazers_count - a.stargazers_count)
-          .slice(0, 6)
-          .map((r: any) => ({
-            slug: r.name,
-            description: r.description ?? "No description yet.",
-            language: r.language ?? "—",
-            stars: r.stargazers_count ?? 0,
-          }));
+        const live: RepoCardData[] = data.filter((r: any) => r.name !== ".github");
 
-        if (!cancelled && live.length > 0) {
+        if (!cancelled && data.length > 0) {
           setRepos(live);
           setIsLive(true);
         }
@@ -208,7 +200,7 @@ function useOrgRepos(fallback: RepoCardData[]) {
 
   const stats: OrgStats = {
     repoCount: repos.length,
-    stars: repos.reduce((sum, r) => sum + r.stars, 0),
+    stars: repos.reduce((sum, r) => sum + r.stargazers_count, 0),
     forks: 0,
     openIssues: 0,
   };
@@ -440,14 +432,14 @@ export function OpenSource() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: spacing.md }}>
             {repos.map((repo) => (
               <a
-                key={repo.slug}
-                href={`${ORG_URL}/${repo.slug}`}
+                key={repo.name}
+                href={`${ORG_URL}/${repo.name}`}
                 target="_blank"
                 rel="noreferrer"
                 style={{ ...card, display: "block", padding: spacing.lg, textDecoration: "none" }}
               >
-                <Text style={{ color: colors.text.primary, fontWeight: 700, fontSize: typography.bodySm.size, fontFamily: monoFont }}>
-                  {repo.slug}
+                <Text className="uppercase" style={{ color: colors.text.primary, fontWeight: 700, fontSize: typography.bodyLg.size, fontFamily: monoFont }}>
+                  {repo.name}
                 </Text>
                 <Text
                   variant="bodySm"
@@ -465,7 +457,7 @@ export function OpenSource() {
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <Star size={11} color={colors.text.tertiary} />
                     <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary }}>
-                      {repo.stars}
+                      {repo.stargazers_count}
                     </Text>
                   </div>
                 </div>
