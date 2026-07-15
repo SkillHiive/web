@@ -118,7 +118,7 @@ export default function Hero() {
             <div className="hero-cell px-10">
               <div className="hero-meta">
                 <div className="status-dot"></div>
-                <span className="reveal-text"> BETA TESTING</span>
+                <span className="reveal-text">FROM THE PEACEFUL INTERNET</span>
               </div>
 
               <h1 className="hero-title">
@@ -143,9 +143,9 @@ export default function Hero() {
                   className="cta-btn"
                   onMouseMove={handleCtaMove}
                   onMouseLeave={resetCta}
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/register")}
                 >
-                  <span className="btn-text">JOIN BETA TESTFLIGHT</span>
+                  <span className="btn-text">JOIN OUR HOME</span>
                   <span className="btn-arrow">→</span>
                 </button>
               </div>

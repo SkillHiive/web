@@ -9,7 +9,6 @@ interface RepoCardData {
   description: string;
   stargazers_count: number;
   language: string;
-  svn_url: string;
   isFallback?: boolean;
 }
 
@@ -41,27 +40,27 @@ const ORG_REPOS_URL = `https://github.com/orgs/${ORG}/repositories`;
 
 const FALLBACK_REPOS: RepoCardData[] = [
   {
-    slug: "web",
+    name: "web",
     description:
       "The web client for SkillHiive. Built with complete feature parity alongside the native mobile experience.",
     language: "TypeScript",
-    stars: 0,
+    stargazers_count: 0,
     isFallback: true,
   },
   {
-    slug: "mobile",
+    name: "mobile",
     description:
       "The native React Native application for Android and iOS, delivering the full SkillHiive experience on mobile.",
     language: "TypeScript",
-    stars: 0,
+    stargazers_count: 0,
     isFallback: true,
   },
   {
-    slug: "backend",
+    name: "backend",
     description:
       "Backend services powering authentication, real-time collaboration, LiveKit session management, and platform APIs.",
     language: "JavaScript",
-    stars: 0,
+    stargazers_count: 0,
     isFallback: true,
   },
 ];
@@ -143,6 +142,10 @@ const CONTRIBUTE_STEPS = [
   {
     command: "npm install",
     comment: "install dependencies",
+  },
+  {
+    command: "cp .env.example .env.local",
+    comment: "copy the example env file",
   },
   {
     command: "npm run dev",
@@ -269,7 +272,6 @@ export function OpenSource() {
     textTransform: "uppercase",
     color: colors.text.tertiary,
     fontWeight: typography.label.weight,
-    marginBottom: spacing.lg,
     fontFamily: monoFont,
   };
 
@@ -277,7 +279,6 @@ export function OpenSource() {
     <section
       style={{
         width: "100%",
-        background: colors.bg.elevated,
         padding: `${spacing.giant}px ${spacing.xl}px`,
       }}
     >
@@ -318,11 +319,12 @@ export function OpenSource() {
               whichever piece you're curious about.
             </Text>
 
-            <div style={{ display: "flex", alignItems: "center", gap: spacing.lg, marginTop: spacing.xl, flexWrap: "wrap" }}>
+            <div style={{ gap: spacing.lg, marginTop: spacing.xl, flexWrap: "wrap" }} className="flex">
               <a
                 href={ORG_URL}
                 target="_blank"
                 rel="noreferrer"
+                className="transition-ui group hover:scale-[1.025] hover:shadow-md shadow-yellow-400/30 active:scale-[0.975] active:shadow-sm"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -336,8 +338,9 @@ export function OpenSource() {
                   textDecoration: "none",
                 }}
               >
+                <span className="transition-ui group-hover:scale-[1.025]  flex gap-2 items-center">
                 <GithubMark size={16} color={colors.text.onTint} />
-                View organization
+                View organisation</span>
               </a>
               <a
                 href={ORG_REPOS_URL}
@@ -352,6 +355,7 @@ export function OpenSource() {
                   fontWeight: 600,
                   textDecoration: "none",
                 }}
+                className={`transition-ui hover:scale-[1.025] hover:!text-white active:scale-[0.975]`}
               >
                 See all repositories
                 <ArrowUpRight size={13} color={colors.text.tertiary} />
@@ -361,7 +365,7 @@ export function OpenSource() {
 
           {/* Signature: cross-repo activity log */}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <div style={{ ...card, width: "100%", maxWidth: 460, overflow: "hidden" }}>
+            <div className="transition-ui " style={{ ...card, width: "100%", maxWidth: 460, overflow: "hidden" }}>
               <div
                 style={{
                   display: "flex",
@@ -436,6 +440,7 @@ export function OpenSource() {
                 href={`${ORG_URL}/${repo.name}`}
                 target="_blank"
                 rel="noreferrer"
+                className={`hover:scale-[1.025] hover:shadow-md hover:!border-[#fffd01] shadow-yellow-400/10 active:scale-[0.975] active:shadow-sm transition-ui`}
                 style={{ ...card, display: "block", padding: spacing.lg, textDecoration: "none" }}
               >
                 <Text className="uppercase" style={{ color: colors.text.primary, fontWeight: 700, fontSize: typography.bodyLg.size, fontFamily: monoFont }}>
@@ -486,6 +491,7 @@ export function OpenSource() {
               gap: 1,
               background: colors.border.subtle,
               borderRadius: radii.lg,
+              marginTop: spacing.md,
               overflow: "hidden",
               border: `1px solid ${colors.border.subtle}`,
             }}
@@ -534,11 +540,27 @@ export function OpenSource() {
                   {item.name}
                 </span>
               ))}
+              <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: spacing.xs,
+                    borderRadius: radii.pill,
+                    border: `1px solid ${colors.border.primary}`,
+                    background: colors.bg.accentDim,
+                    padding: `${spacing.xs + 2}px ${spacing.md}px`,
+                    fontFamily: monoFont,
+                    fontSize: 11.5,
+                    color: colors.text.secondary,
+                  }}
+                >
+                  Self Hosted Servers
+                </span>
             </div>
           </div>
 
           <div>
-            <Text variant="label" style={sectionLabel}>
+            <Text className="" variant="label" style={sectionLabel}>
               Get started
             </Text>
             <div style={card}>
@@ -557,7 +579,7 @@ export function OpenSource() {
                 {CONTRIBUTE_STEPS.map((step, i) => (
                   <div key={i} style={{ fontFamily: monoFont, fontSize: 12.5 }}>
                     <div style={{ display: "flex", gap: spacing.xs }}>
-                      <span style={{ color: colors.surface.skillhive }}>$</span>
+                      <span className="select-none" style={{ color: colors.surface.skillhive }}>$</span>
                       <span style={{ color: colors.text.primary }}>{step.command}</span>
                     </div>
                     <div style={{ marginLeft: spacing.md, color: colors.text.tertiary }}># {step.comment}</div>
