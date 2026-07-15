@@ -532,7 +532,7 @@ export default function SignUpScreen({ onBack, onSubmit }: SignUpScreenProps) {
             Create account
           </div>
           <div className="text-[9px] tracking-[2px] text-[#666664] mt-1">
-            JOIN THE SKILLHIVE NETWORK
+            JOIN THE SKILLHIIVE NETWORK
           </div>
         </div>
       </div>

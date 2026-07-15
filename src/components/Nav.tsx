@@ -9,7 +9,7 @@ const Nav = () => {
       <div className="wrapper rounded-2xl w-full space-between flex w-[100%] justify-between transition-ui">
         {/* <div className="nav-left mx-2 flex justify-center items-center ">
           <div className="nav-brand w-max text-2xl font-bold color-primary px-3 py-2 nav-block font-primary">
-            <KineticText text="SkillHive" />
+            <KineticText text="SkillHiive" />
           </div>
         </div> */}
         {/* <div className="nav-skill-search-box relative w-auto flex items-center">

@@ -1,10 +1,10 @@
-# SkillHive Web
+# SkillHiive Web
 
-If you are reading this, you are looking at the web foundation of SkillHive.
+If you are reading this, you are looking at the web foundation of SkillHiive.
 
-SkillHive is a learning and community platform for people who want to connect, collaborate, and grow together. This repository contains the browser experience: the main product surface for discovery, learning flows, social interaction, and account-level platform management.
+SkillHiive is a learning and community platform for people who want to connect, collaborate, and grow together. This repository contains the browser experience: the main product surface for discovery, learning flows, social interaction, and account-level platform management.
 
-This repo is closely related to **SkillHive-Mobile**. Think of this codebase as the broad, desktop-capable platform layer, while the mobile repo delivers a focused, native-first experience for users on the go. Both should feel like the same product, not two disconnected apps.
+This repo is closely related to **SkillHiive Mobile**. Think of this codebase as the broad, desktop-capable platform layer, while the mobile repo delivers a focused, native-first experience for users on the go. Both should feel like the same product, not two disconnected apps.
 
 ## What this repository is responsible for
 
@@ -18,12 +18,12 @@ This web repo is where we shape the core product experience in a browser context
 
 If you are implementing a feature that requires larger information density, advanced navigation, or workspace-style usage, this is usually the right place.
 
-## How this repo relates to SkillHive-Mobile
+## How this repo relates to SkillHiive Mobile
 
 The relationship is intentional:
 
-- **SkillHive-Web** is the broad platform surface and often the fastest place to introduce full-featured workflows.
-- **SkillHive-Mobile** is the mobile app companion, optimized for everyday usage, quick interaction loops, and device-native behavior.
+- **SkillHiive Web** is the broad platform surface and often the fastest place to introduce full-featured workflows.
+- **SkillHiive Mobile** is the mobile app companion, optimized for everyday usage, quick interaction loops, and device-native behavior.
 - Product behavior, terminology, and user expectations should stay consistent between the two repos.
 - Feature rollout may happen in one repo first, but parity planning should always be explicit.
 
@@ -40,8 +40,8 @@ That means the default expectation for contributions is typed, maintainable fron
 Clone the repository and install dependencies with your preferred package manager:
 
 ```bash
-git clone https://github.com/TheLinuxGuy-ssh/SkillHive-Web.git
-cd SkillHive-Web
+git clone https://github.com/SkillHiive/web.git
+cd web
 npm install
 ```
 
@@ -55,7 +55,6 @@ Build and validate before opening a pull request:
 
 ```bash
 npm run build
-npm run test
 npm run lint
 ```
 
@@ -76,11 +75,11 @@ When contributing here, optimize for long-term product quality, not short-term p
 For any non-trivial feature, ask and answer these questions in your PR:
 
 1. Does this change alter shared product behavior?
-2. Does SkillHive-Mobile need a matching implementation or follow-up issue?
+2. Does the Mobile version need a matching implementation or follow-up issue?
 3. Are API or data-shape assumptions still valid for both clients?
 4. Are copy and interaction patterns still consistent across platforms?
 
-This habit keeps SkillHive coherent as one product.
+This habit keeps SkillHiive coherent as one product.
 
 ## Pull requests
 

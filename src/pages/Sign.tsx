@@ -42,7 +42,7 @@ export default function Sign() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="mb-10 text-center">
-          <h1 className="text-4xl text-zinc-100 mb-2">Sign in to SkillHive</h1>
+          <h1 className="text-4xl text-zinc-100 mb-2">Sign in to SkillHiive</h1>
 
           <p className="text-xs tracking-[0.3em] text-zinc-500">
             IDENTITY VERIFICATION REQUIRED
