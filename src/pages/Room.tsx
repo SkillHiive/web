@@ -29,6 +29,11 @@ const SPEAKER_DEBOUNCE_MS = 800;
 const TILES_PER_PAGE = 6;
 const SIDEBAR_W = 300;
 
+// ─── Layout constants (responsive Meet-style grid) ────────────────────────────
+const TILE_ASPECT = 16 / 9;
+const GRID_GAP = 8;
+const MOBILE_BREAKPOINT = 700;
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type CubicleState =
   | { status: "idle" }
@@ -107,13 +112,54 @@ interface GridLayout {
   tileH: number;
 }
 
-function computeGrid(count: number, W: number, H: number): GridLayout {
-  if (count <= 1) return { cols: 1, rows: 1, tileW: W, tileH: H };
-  if (count === 2) return { cols: 1, rows: 2, tileW: W, tileH: H / 2 };
-  if (count === 3) return { cols: 2, rows: 2, tileW: W / 2, tileH: H / 2 };
-  if (count === 4) return { cols: 2, rows: 2, tileW: W / 2, tileH: H / 2 };
-  if (count === 5) return { cols: 3, rows: 2, tileW: W / 3, tileH: H / 2 };
-  return { cols: 2, rows: 3, tileW: W / 2, tileH: H / 3 };
+// Google-Meet-style optimal grid: search every possible column count and keep
+// whichever produces the largest tile area while respecting the target aspect
+// ratio. This guarantees tiles are never stretched or over-cropped regardless
+// of container shape (ultra-wide monitor, portrait phone, sidebar open, etc.)
+// or participant count — it's the same core approach Meet/Zoom Web use.
+function computeOptimalGrid(
+  count: number,
+  containerW: number,
+  containerH: number,
+  gap: number = GRID_GAP,
+  aspect: number = TILE_ASPECT,
+): GridLayout {
+  if (count <= 0 || containerW <= 0 || containerH <= 0) {
+    return {
+      cols: 1,
+      rows: 1,
+      tileW: Math.max(containerW, 0),
+      tileH: Math.max(containerH, 0),
+    };
+  }
+
+  let best: GridLayout = { cols: 1, rows: count, tileW: 0, tileH: 0 };
+  let bestArea = 0;
+
+  for (let cols = 1; cols <= count; cols++) {
+    const rows = Math.ceil(count / cols);
+
+    // Fit to width first, respecting the aspect ratio.
+    let tileW = (containerW - gap * (cols - 1)) / cols;
+    let tileH = tileW / aspect;
+
+    // If that overflows available height, fit to height instead.
+    const totalH = tileH * rows + gap * (rows - 1);
+    if (totalH > containerH) {
+      tileH = (containerH - gap * (rows - 1)) / rows;
+      tileW = tileH * aspect;
+    }
+
+    if (tileW <= 0 || tileH <= 0) continue;
+
+    const area = tileW * tileH;
+    if (area > bestArea) {
+      bestArea = area;
+      best = { cols, rows, tileW, tileH };
+    }
+  }
+
+  return best;
 }
 
 // ─── Audio device hook ────────────────────────────────────────────────────────
@@ -168,8 +214,6 @@ export interface RoomScreenProps {
   supabase?: any;
   /** Optional: override colors */
   colors?: Colors;
-  /** Session phase state — wire up to your useRoomSession hook */
-  phaseState?: PhaseState;
 }
 
 export default function RoomScreen({
@@ -182,6 +226,24 @@ export default function RoomScreen({
   const [lobbyDone, setLobbyDone] = useState(false);
   const [joinWithCam, setJoinWithCam] = useState(true);
   const [joinWithFrontCam, setJoinWithFrontCam] = useState(true);
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  const [token, setToken] = useState<string | null>(null);
+  const [livekitReady, setLivekitReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryTick, setRetryTick] = useState(0);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [camEnabled, setCamEnabled] = useState(false);
+  const [isFrontCam, setIsFrontCam] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [focusedIdentity, setFocusedIdentity] = useState<string | null>(null);
+  const [camOffSet, setCamOffSet] = useState<Set<string>>(new Set());
+  const [cubicle, setCubicle] = useState<CubicleState>({ status: "idle" });
+  const [cubicleToken, setCubicleToken] = useState<string | null>(null);
+  const [cubicleSet, setCubicleSet] = useState<Set<string>>(new Set());
+  const [outputMenuOpen, setOutputMenuOpen] = useState(false);
 
   // ── Refs ──────────────────────────────────────────────────────────────────
   const intentionalLeaveRef = useRef(false);
@@ -196,6 +258,8 @@ export default function RoomScreen({
   const cubicleRef = useRef<CubicleState>({ status: "idle" });
   const shownCubicleAlertRef = useRef<string | null>(null);
   const prevPhaseRef = useRef<string>("waiting");
+  const autoRetryRef = useRef(0);
+  const retryScheduledRef = useRef(false);
 
   // ── Presence + session ──────────────────────────────────────────────────────
   // Register this user in `room_participants` (which populates the `active_rooms`
@@ -205,26 +269,6 @@ export default function RoomScreen({
     setError("Couldn't join the room. Please try again.");
   });
   const { phaseState } = useRoomSession(roomName ?? "");
-
-  // ── State ─────────────────────────────────────────────────────────────────
-  const [token, setToken] = useState<string | null>(null);
-  const [livekitReady, setLivekitReady] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryTick, setRetryTick] = useState(0);
-  const autoRetryRef = useRef(0);
-  const retryScheduledRef = useRef(false);
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [micEnabled, setMicEnabled] = useState(false);
-  const [camEnabled, setCamEnabled] = useState(false);
-  const [isFrontCam, setIsFrontCam] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [focusedIdentity, setFocusedIdentity] = useState<string | null>(null);
-  const [camOffSet, setCamOffSet] = useState<Set<string>>(new Set());
-  const [cubicle, setCubicle] = useState<CubicleState>({ status: "idle" });
-  const [cubicleToken, setCubicleToken] = useState<string | null>(null);
-  const [cubicleSet, setCubicleSet] = useState<Set<string>>(new Set());
-  const [outputMenuOpen, setOutputMenuOpen] = useState(false);
 
   const {
     devices: audioDevices,
@@ -1595,7 +1639,7 @@ function TopBar({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ConferenceView
+// ConferenceView — responsive, aspect-ratio-preserving grid (Meet-style)
 // ─────────────────────────────────────────────────────────────────────────────
 function ConferenceView({
   focusedIdentity,
@@ -1671,9 +1715,10 @@ function ConferenceView({
   }, [rawTracks, topIdentity, myIdentity]);
 
   useEffect(() => {
-    const total = Math.ceil(Math.max(tracks.length, 1) / TILES_PER_PAGE);
+    const perPage = dims.w > 0 && dims.w < MOBILE_BREAKPOINT ? 4 : TILES_PER_PAGE;
+    const total = Math.ceil(Math.max(tracks.length, 1) / perPage);
     if (activePage >= total) setActivePage(0);
-  }, [tracks.length]);
+  }, [tracks.length, dims.w]);
 
   const { w: gridW, h: gridH } = dims;
 
@@ -1722,12 +1767,40 @@ function ConferenceView({
     );
   }
 
-  // ── Focused layout ────────────────────────────────────────────────────────
+  const isMobile = gridW > 0 && gridW < MOBILE_BREAKPOINT;
+
+  // ── Focused / pinned layout ────────────────────────────────────────────
   if (focusedIdentity && gridW > 0 && gridH > 0) {
     const ft = tracks.find((t) => t.participant.identity === focusedIdentity);
     const ot = tracks.filter((t) => t.participant.identity !== focusedIdentity);
-    const SH = 110,
-      STW = 80;
+    const filmstripVisible = ot.length > 0;
+    const SH = isMobile ? 92 : 120;
+    const STW = isMobile ? 68 : 96;
+    const mainAvailH = gridH - (filmstripVisible ? SH + GRID_GAP : 0);
+    const mainLayout = computeOptimalGrid(1, gridW, mainAvailH);
+
+    const mainTile = ft ? (
+      <ParticipantTile
+        {...tp(ft)}
+        width={mainLayout.tileW}
+        height={mainLayout.tileH}
+        isFocused
+      />
+    ) : (
+      <AvatarTile
+        identity={focusedIdentity}
+        width={mainLayout.tileW}
+        height={mainLayout.tileH}
+        isFocused
+        inCubicle={cubicleSet.has(focusedIdentity)}
+        onFocus={onFocus}
+        onUnfocus={onUnfocus}
+        colors={colors}
+        onDoubleTap={onDoubleTap}
+        isMe={focusedIdentity === myIdentity}
+      />
+    );
+
     return (
       <div
         ref={containerRef}
@@ -1738,30 +1811,19 @@ function ConferenceView({
           flexDirection: "column",
         }}
       >
-        <div style={{ flex: 1, overflow: "hidden" }}>
-          {ft ? (
-            <ParticipantTile
-              {...tp(ft)}
-              width={gridW}
-              height={gridH - (ot.length > 0 ? SH : 0)}
-              isFocused
-            />
-          ) : (
-            <AvatarTile
-              identity={focusedIdentity}
-              width={gridW}
-              height={gridH - (ot.length > 0 ? SH : 0)}
-              isFocused
-              inCubicle={cubicleSet.has(focusedIdentity)}
-              onFocus={onFocus}
-              onUnfocus={onUnfocus}
-              colors={colors}
-              onDoubleTap={onDoubleTap}
-              isMe={focusedIdentity === myIdentity}
-            />
-          )}
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+            background: "#000",
+          }}
+        >
+          {mainTile}
         </div>
-        {ot.length > 0 && (
+        {filmstripVisible && (
           <div
             style={{
               height: SH,
@@ -1769,8 +1831,8 @@ function ConferenceView({
               display: "flex",
               overflowX: "auto",
               alignItems: "center",
-              gap: 4,
-              padding: "0 6px",
+              gap: GRID_GAP,
+              padding: "0 8px",
               flexShrink: 0,
             }}
           >
@@ -1779,7 +1841,7 @@ function ConferenceView({
                 key={`s-${ref.participant.identity}`}
                 {...tp(ref)}
                 width={STW}
-                height={SH - 12}
+                height={SH - 16}
               />
             ))}
           </div>
@@ -1788,202 +1850,86 @@ function ConferenceView({
     );
   }
 
-  // ── Grid / paginated layout ───────────────────────────────────────────────
+  // ── Grid / paginated layout ─────────────────────────────────────────────
   if (gridW === 0 || gridH === 0) {
     return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />;
   }
 
-  if (tracks.length <= 6) {
-    const L = computeGrid(tracks.length, gridW, gridH);
-    if (tracks.length === 3) {
-      const hH = gridH / 2,
-        hW = gridW / 2;
-      return (
-        <div ref={containerRef} style={{ width: gridW, height: gridH }}>
-          <ParticipantTile {...tp(tracks[0])} width={gridW} height={hH} />
-          <div style={{ display: "flex" }}>
-            {tracks.slice(1).map((r) => (
-              <ParticipantTile
-                key={r.participant.identity}
-                {...tp(r)}
-                width={hW}
-                height={hH}
-              />
-            ))}
-          </div>
-        </div>
-      );
-    }
-    if (tracks.length === 5) {
-      const hH = gridH / 2,
-        hW = gridW / 2,
-        tW = gridW / 3;
-      return (
-        <div ref={containerRef} style={{ width: gridW, height: gridH }}>
-          <div style={{ display: "flex" }}>
-            {tracks.slice(0, 2).map((r) => (
-              <ParticipantTile
-                key={r.participant.identity}
-                {...tp(r)}
-                width={hW}
-                height={hH}
-              />
-            ))}
-          </div>
-          <div style={{ display: "flex" }}>
-            {tracks.slice(2).map((r) => (
-              <ParticipantTile
-                key={r.participant.identity}
-                {...tp(r)}
-                width={tW}
-                height={hH}
-              />
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return (
-      <div
-        ref={containerRef}
-        style={{
-          width: gridW,
-          height: gridH,
-          display: "flex",
-          flexWrap: "wrap",
-        }}
-      >
-        {tracks.map((r) => (
-          <ParticipantTile
-            key={r.participant.identity}
-            {...tp(r)}
-            width={L.tileW}
-            height={L.tileH}
-          />
-        ))}
-      </div>
-    );
-  }
-
-  // ── Paginated ─────────────────────────────────────────────────────────────
+  const perPage = isMobile ? 4 : TILES_PER_PAGE;
   const pages: (typeof tracks)[] = [];
-  for (let i = 0; i < tracks.length; i += TILES_PER_PAGE)
-    pages.push(tracks.slice(i, i + TILES_PER_PAGE));
-  const DH = 28,
-    pgH = gridH - DH;
+  for (let i = 0; i < tracks.length; i += perPage) pages.push(tracks.slice(i, i + perPage));
+  const showPagination = pages.length > 1;
+  const DH = showPagination ? 28 : 0;
+  const pgH = gridH - DH;
 
   return (
     <div
       ref={containerRef}
       style={{
-        width: gridW,
-        height: gridH,
+        width: "100%",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      <div style={{ flex: 1, overflow: "hidden" }}>
+      <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
         {pages.map((pt, pi) => {
           if (pi !== activePage) return null;
-          const pl = computeGrid(pt.length, gridW, pgH);
-          if (pt.length === 3) {
-            const hH = pgH / 2,
-              hW = gridW / 2;
-            return (
-              <div key={pi} style={{ width: gridW, height: pgH }}>
-                <ParticipantTile {...tp(pt[0])} width={gridW} height={hH} />
-                <div style={{ display: "flex" }}>
-                  {pt.slice(1).map((r) => (
-                    <ParticipantTile
-                      key={r.participant.identity}
-                      {...tp(r)}
-                      width={hW}
-                      height={hH}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          }
-          if (pt.length === 5) {
-            const hH = pgH / 2,
-              hW = gridW / 2,
-              tW = gridW / 3;
-            return (
-              <div key={pi} style={{ width: gridW, height: pgH }}>
-                <div style={{ display: "flex" }}>
-                  {pt.slice(0, 2).map((r) => (
-                    <ParticipantTile
-                      key={r.participant.identity}
-                      {...tp(r)}
-                      width={hW}
-                      height={hH}
-                    />
-                  ))}
-                </div>
-                <div style={{ display: "flex" }}>
-                  {pt.slice(2).map((r) => (
-                    <ParticipantTile
-                      key={r.participant.identity}
-                      {...tp(r)}
-                      width={tW}
-                      height={hH}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          }
+          const layout = computeOptimalGrid(pt.length, gridW, pgH);
           return (
             <div
               key={pi}
               style={{
-                width: gridW,
-                height: pgH,
+                width: "100%",
+                height: "100%",
                 display: "flex",
                 flexWrap: "wrap",
+                alignContent: "center",
+                justifyContent: "center",
+                gap: GRID_GAP,
               }}
             >
               {pt.map((r) => (
                 <ParticipantTile
                   key={r.participant.identity}
                   {...tp(r)}
-                  width={pl.tileW}
-                  height={pl.tileH}
+                  width={layout.tileW}
+                  height={layout.tileH}
                 />
               ))}
             </div>
           );
         })}
       </div>
-      {/* Page dots */}
-      <div
-        style={{
-          height: DH,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 6,
-        }}
-      >
-        {pages.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setActivePage(i)}
-            style={{
-              height: 7,
-              width: i === activePage ? 18 : 7,
-              borderRadius: 3.5,
-              background:
-                i === activePage ? colors.tint.accent : colors.border.subtle,
-              border: "none",
-              padding: 0,
-              cursor: "pointer",
-              transition: "width 0.2s",
-            }}
-          />
-        ))}
-      </div>
+      {showPagination && (
+        <div
+          style={{
+            height: DH,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+          }}
+        >
+          {pages.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActivePage(i)}
+              style={{
+                height: 7,
+                width: i === activePage ? 18 : 7,
+                borderRadius: 3.5,
+                background:
+                  i === activePage ? colors.tint.accent : colors.border.subtle,
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                transition: "width 0.2s",
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -2051,8 +1997,10 @@ function ParticipantTile({
         flexShrink: 0,
         background: colors.surface.primary,
         border: `${borderWidth}px solid ${borderColor}`,
+        borderRadius: 12,
         opacity: inCubicle && !isMe ? 0.5 : 1,
         boxSizing: "border-box",
+        transition: "width 0.15s ease, height 0.15s ease",
       }}
     >
       <VideoTrack
@@ -2355,11 +2303,13 @@ function AvatarTile({
         flexShrink: 0,
         background: colors.surface.secondary,
         border: `${inCubicle || isFocused ? 2 : 1}px solid ${inCubicle || isFocused ? colors.tint.accent : colors.border.subtle}`,
+        borderRadius: 12,
         opacity: inCubicle && !isMe ? 0.5 : 1,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         boxSizing: "border-box",
+        transition: "width 0.15s ease, height 0.15s ease",
       }}
     >
       {inCubicle && (
