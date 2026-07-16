@@ -53,7 +53,7 @@ export default function Features() {
         <h2 className="fs-headline">
           Most platforms want your time.
           <br />
-          <span className="fs-accent">We want your output.</span>
+          <span className="fs-accent">We value your presence.</span>
         </h2>
       </div>
 

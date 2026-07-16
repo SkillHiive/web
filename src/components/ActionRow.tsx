@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
-import { Heart, MessageCircle, Share2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { Check, Heart, MessageCircle, Share2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTokens } from "@/theme";
 
 export default function ActionRow({
@@ -21,11 +21,15 @@ export default function ActionRow({
   const [likeCount, setLikeCount] = useState(likes);
   const [loading, setLoading] = useState(false);
   const [hover, setHover] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function check() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || cancelled) return;
       const { data } = await supabase
         .from("likes")
@@ -36,30 +40,89 @@ export default function ActionRow({
       if (!cancelled) setLiked(!!data);
     }
     check();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [postId]);
 
-  const handleLike = useCallback(async (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (loading) return;
-    setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
+  // clear any pending "copied" reset timer on unmount
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+    };
+  }, []);
 
-    if (liked) {
-      setLiked(false);
-      setLikeCount(c => Math.max(c - 1, 0));
-      const { error } = await supabase.from("likes").delete()
-        .eq("post_id", postId).eq("user_id", user.id);
-      if (error) { setLiked(true); setLikeCount(c => c + 1); }
-    } else {
-      setLiked(true);
-      setLikeCount(c => c + 1);
-      const { error } = await supabase.from("likes").insert({ post_id: postId, user_id: user.id });
-      if (error) { setLiked(false); setLikeCount(c => Math.max(c - 1, 0)); }
-    }
-    setLoading(false);
-  }, [liked, loading, postId]);
+  const handleLike = useCallback(
+    async (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      if (loading) return;
+      setLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      if (liked) {
+        setLiked(false);
+        setLikeCount((c) => Math.max(c - 1, 0));
+        const { error } = await supabase
+          .from("likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", user.id);
+        if (error) {
+          setLiked(true);
+          setLikeCount((c) => c + 1);
+        }
+      } else {
+        setLiked(true);
+        setLikeCount((c) => c + 1);
+        const { error } = await supabase
+          .from("likes")
+          .insert({ post_id: postId, user_id: user.id });
+        if (error) {
+          setLiked(false);
+          setLikeCount((c) => Math.max(c - 1, 0));
+        }
+      }
+      setLoading(false);
+    },
+    [liked, loading, postId],
+  );
+
+  const handleShare = useCallback(
+    async (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      const url = `${window.location.origin}/post/${postId}`;
+
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(url);
+        } else {
+          // fallback for browsers/contexts without Clipboard API access
+          const textarea = document.createElement("textarea");
+          textarea.value = url;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
+
+        setCopied(true);
+        if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+        copiedTimeoutRef.current = setTimeout(() => setCopied(false), 1800);
+      } catch (err) {
+        console.error("Failed to copy link:", err);
+      }
+    },
+    [postId],
+  );
 
   const pill = (active: boolean, key: string): React.CSSProperties => ({
     display: "inline-flex",
@@ -106,7 +169,10 @@ export default function ActionRow({
       </button>
 
       <button
-        onClick={(e) => { e.stopPropagation(); onCommentPress?.(postId); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onCommentPress?.(postId);
+        }}
         onMouseEnter={() => setHover("comment")}
         onMouseLeave={() => setHover(null)}
         style={pill(false, "comment")}
@@ -117,26 +183,53 @@ export default function ActionRow({
 
       <div style={{ flex: 1 }} />
 
-      <button
-        onClick={(e) => e.stopPropagation()}
-        onMouseEnter={() => setHover("share")}
-        onMouseLeave={() => setHover(null)}
-        style={{
-          width: 30,
-          height: 30,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: 8,
-          border: "none",
-          cursor: "pointer",
-          color: colors.text.tertiary,
-          background: hover === "share" ? colors.surface.secondary : "transparent",
-          transition: "background 0.15s",
-        }}
-      >
-        <Share2 size={14} />
-      </button>
+      <div style={{ position: "relative" }}>
+        <button
+          onClick={handleShare}
+          onMouseEnter={() => setHover("share")}
+          onMouseLeave={() => setHover(null)}
+          style={{
+            width: 30,
+            height: 30,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 8,
+            border: "none",
+            cursor: "pointer",
+            color: copied ? "#22c55e" : colors.text.tertiary,
+            background:
+              hover === "share" ? colors.surface.secondary : "transparent",
+            transition: "background 0.15s, color 0.15s",
+          }}
+        >
+          {copied ? <Check size={14} /> : <Share2 size={14} />}
+        </button>
+
+        {/* Tooltip */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "calc(100% + 8px)",
+            right: 0,
+            padding: "6px 10px",
+            borderRadius: 6,
+            background: colors.surface.raised ?? "#1c1c1c",
+            border: `1px solid ${colors.border.subtle}`,
+            color: colors.text.primary,
+            fontSize: 12,
+            fontWeight: 500,
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+            opacity: copied ? 1 : 0,
+            transform: copied ? "translateY(0)" : "translateY(4px)",
+            transition: "opacity 0.15s, transform 0.15s",
+            zIndex: 20,
+          }}
+        >
+          Link copied
+        </div>
+      </div>
     </div>
   );
 }

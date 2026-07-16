@@ -470,6 +470,7 @@ export default function Post() {
         minHeight: "100vh",
         background: colors.bg.muted,
         fontFamily: FONT,
+        padding: "18px 20px",
       }}
     >
       {/* ── HEADER ── */}
