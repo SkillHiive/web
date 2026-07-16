@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTokens } from "@/theme";
 import { Text } from "@/components/ui";
+import { BookMarked, GitFork } from "lucide-react";
 
 /* ---------------------------------- Types --------------------------------- */
 
@@ -9,6 +10,9 @@ interface RepoCardData {
   description: string;
   stargazers_count: number;
   language: string;
+  forks_count?: number;
+  updated_at?: string;
+  private?: boolean;
   isFallback?: boolean;
 }
 
@@ -238,6 +242,30 @@ function Star({ size = 12, color }: { size?: number; color: string }) {
   );
 }
 
+// GitHub's real per-language colors — extend as needed
+const LANGUAGE_COLORS: Record<string, string> = {
+  TypeScript: "#3178c6",
+  JavaScript: "#f1e05a",
+  Python: "#3572A5",
+  Go: "#00ADD8",
+  Rust: "#dea584",
+  Ruby: "#701516",
+  Java: "#b07219",
+  HTML: "#e34c26",
+  CSS: "#563d7c",
+  Shell: "#89e051",
+};
+
+function formatRelativeTime(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86_400_000);
+  if (days < 1) return "today";
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(months / 12)}y ago`;
+}
+
 /* ------------------------------ Main section ------------------------------ */
 /**
  * Drop-in "open source" showcase section for the SkillHive marketing site.
@@ -307,7 +335,7 @@ export function OpenSource() {
                 margin: 0,
               }}
             >
-              We're making SkillHive public. All of it.
+              We're making SkillHiive public. All of it.
             </Text>
             <Text
               variant="bodyLg"
@@ -435,38 +463,95 @@ export function OpenSource() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: spacing.md }}>
             {repos.map((repo) => (
-              <a
-                key={repo.name}
-                href={`${ORG_URL}/${repo.name}`}
-                target="_blank"
-                rel="noreferrer"
-                className={`hover:scale-[1.025] hover:shadow-md hover:!border-[#fffd01] shadow-yellow-400/10 active:scale-[0.975] active:shadow-sm transition-ui`}
-                style={{ ...card, display: "block", padding: spacing.lg, textDecoration: "none" }}
-              >
-                <Text className="uppercase" style={{ color: colors.text.primary, fontWeight: 700, fontSize: typography.bodyLg.size, fontFamily: monoFont }}>
-                  {repo.name}
-                </Text>
-                <Text
-                  variant="bodySm"
-                  style={{ display: "block", marginTop: spacing.xs, color: colors.text.secondary, lineHeight: 1.5, minHeight: 36 }}
-                >
-                  {repo.description}
-                </Text>
-                <div style={{ display: "flex", alignItems: "center", gap: spacing.md, marginTop: spacing.md }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: colors.text.tertiary }} />
-                    <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary }}>
-                      {repo.language}
-                    </Text>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <Star size={11} color={colors.text.tertiary} />
-                    <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary }}>
-                      {repo.stargazers_count}
-                    </Text>
-                  </div>
-                </div>
-              </a>
+             <a key={repo.name}
+  href={`${ORG_URL}/${repo.name}`}
+  target="_blank"
+  rel="noreferrer"
+  className="hover:scale-[1.025] hover:shadow-md hover:!border-[#fffd01] shadow-yellow-400/10 active:scale-[0.975] active:shadow-sm transition-ui"
+  style={{ ...card, display: "block", padding: spacing.lg, textDecoration: "none" }}
+>
+  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+    <BookMarked size={14} color={colors.text.tertiary} />
+    <Text
+      className="uppercase"
+      style={{
+        color: colors.text.primary,
+        fontWeight: 700,
+        fontSize: typography.bodyLg.size,
+        fontFamily: monoFont,
+      }}
+    >
+      {repo.name}
+    </Text>
+    {repo.private && (
+      <span
+        style={{
+          fontSize: 10,
+          border: `1px solid ${colors.text.tertiary}`,
+          borderRadius: 999,
+          padding: "1px 6px",
+          color: colors.text.tertiary,
+          fontFamily: monoFont,
+        }}
+      >
+        private
+      </span>
+    )}
+  </div>
+
+  <Text
+    variant="bodySm"
+    style={{
+      display: "block",
+      marginTop: spacing.xs,
+      color: colors.text.secondary,
+      lineHeight: 1.5,
+      minHeight: 36,
+    }}
+  >
+    {repo.description || "No description provided"}
+  </Text>
+
+  <div style={{ display: "flex", alignItems: "center", gap: spacing.md, marginTop: spacing.md, flexWrap: "wrap" }}>
+    {repo.language && (
+      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+        <span
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: "50%",
+            background: LANGUAGE_COLORS[repo.language] ?? colors.text.tertiary,
+          }}
+        />
+        <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary }}>
+          {repo.language}
+        </Text>
+      </div>
+    )}
+
+    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <Star size={11} color={colors.text.tertiary} />
+      <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary }}>
+        {repo.stargazers_count}
+      </Text>
+    </div>
+
+    {typeof repo.forks_count === "number" && (
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <GitFork size={11} color={colors.text.tertiary} />
+        <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary }}>
+          {repo.forks_count}
+        </Text>
+      </div>
+    )}
+
+    {repo.updated_at && (
+      <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary, marginLeft: "auto" }}>
+        Updated {formatRelativeTime(repo.updated_at)}
+      </Text>
+    )}
+  </div>
+</a>
             ))}
           </div>
 
