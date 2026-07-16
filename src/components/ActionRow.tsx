@@ -27,7 +27,9 @@ export default function ActionRow({
   useEffect(() => {
     let cancelled = false;
     async function check() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || cancelled) return;
       const { data } = await supabase
         .from("likes")
@@ -38,7 +40,9 @@ export default function ActionRow({
       if (!cancelled) setLiked(!!data);
     }
     check();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [postId]);
 
   // clear any pending "copied" reset timer on unmount
@@ -48,55 +52,77 @@ export default function ActionRow({
     };
   }, []);
 
-  const handleLike = useCallback(async (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (loading) return;
-    setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
-
-    if (liked) {
-      setLiked(false);
-      setLikeCount(c => Math.max(c - 1, 0));
-      const { error } = await supabase.from("likes").delete()
-        .eq("post_id", postId).eq("user_id", user.id);
-      if (error) { setLiked(true); setLikeCount(c => c + 1); }
-    } else {
-      setLiked(true);
-      setLikeCount(c => c + 1);
-      const { error } = await supabase.from("likes").insert({ post_id: postId, user_id: user.id });
-      if (error) { setLiked(false); setLikeCount(c => Math.max(c - 1, 0)); }
-    }
-    setLoading(false);
-  }, [liked, loading, postId]);
-
-  const handleShare = useCallback(async (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    const url = `${window.location.origin}/post/${postId}`;
-
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-      } else {
-        // fallback for browsers/contexts without Clipboard API access
-        const textarea = document.createElement("textarea");
-        textarea.value = url;
-        textarea.style.position = "fixed";
-        textarea.style.opacity = "0";
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
+  const handleLike = useCallback(
+    async (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      if (loading) return;
+      setLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
       }
 
-      setCopied(true);
-      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
-      copiedTimeoutRef.current = setTimeout(() => setCopied(false), 1800);
-    } catch (err) {
-      console.error("Failed to copy link:", err);
-    }
-  }, [postId]);
+      if (liked) {
+        setLiked(false);
+        setLikeCount((c) => Math.max(c - 1, 0));
+        const { error } = await supabase
+          .from("likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", user.id);
+        if (error) {
+          setLiked(true);
+          setLikeCount((c) => c + 1);
+        }
+      } else {
+        setLiked(true);
+        setLikeCount((c) => c + 1);
+        const { error } = await supabase
+          .from("likes")
+          .insert({ post_id: postId, user_id: user.id });
+        if (error) {
+          setLiked(false);
+          setLikeCount((c) => Math.max(c - 1, 0));
+        }
+      }
+      setLoading(false);
+    },
+    [liked, loading, postId],
+  );
+
+  const handleShare = useCallback(
+    async (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      const url = `${window.location.origin}/post/${postId}`;
+
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(url);
+        } else {
+          // fallback for browsers/contexts without Clipboard API access
+          const textarea = document.createElement("textarea");
+          textarea.value = url;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
+
+        setCopied(true);
+        if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+        copiedTimeoutRef.current = setTimeout(() => setCopied(false), 1800);
+      } catch (err) {
+        console.error("Failed to copy link:", err);
+      }
+    },
+    [postId],
+  );
 
   const pill = (active: boolean, key: string): React.CSSProperties => ({
     display: "inline-flex",
@@ -143,7 +169,10 @@ export default function ActionRow({
       </button>
 
       <button
-        onClick={(e) => { e.stopPropagation(); onCommentPress?.(postId); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onCommentPress?.(postId);
+        }}
         onMouseEnter={() => setHover("comment")}
         onMouseLeave={() => setHover(null)}
         style={pill(false, "comment")}
@@ -169,7 +198,8 @@ export default function ActionRow({
             border: "none",
             cursor: "pointer",
             color: copied ? "#22c55e" : colors.text.tertiary,
-            background: hover === "share" ? colors.surface.secondary : "transparent",
+            background:
+              hover === "share" ? colors.surface.secondary : "transparent",
             transition: "background 0.15s, color 0.15s",
           }}
         >

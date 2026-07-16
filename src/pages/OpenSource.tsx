@@ -183,12 +183,16 @@ function useOrgRepos(fallback: RepoCardData[]) {
 
     async function load() {
       try {
-        const res = await fetch(`https://api.github.com/orgs/${ORG}/repos?per_page=100&type=public`);
+        const res = await fetch(
+          `https://api.github.com/orgs/${ORG}/repos?per_page=100&type=public`,
+        );
         if (!res.ok) throw new Error("org repos fetch failed");
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error("unexpected response");
 
-        const live: RepoCardData[] = data.filter((r: any) => r.name !== ".github");
+        const live: RepoCardData[] = data.filter(
+          (r: any) => r.name !== ".github",
+        );
 
         if (!cancelled && data.length > 0) {
           setRepos(live);
@@ -220,7 +224,13 @@ function useOrgRepos(fallback: RepoCardData[]) {
 
 function GithubMark({ size = 16, color }: { size?: number; color: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill={color}
+      aria-hidden="true"
+    >
       <path d="M12 .5C5.73.5.75 5.48.75 11.75c0 5.02 3.26 9.28 7.78 10.78.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.1-3.16.69-3.83-1.34-3.83-1.34-.52-1.31-1.26-1.66-1.26-1.66-1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94.1-.73.4-1.23.72-1.51-2.52-.29-5.17-1.26-5.17-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.16a10.9 10.9 0 0 1 5.72 0c2.18-1.47 3.14-1.16 3.14-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04 0 4.35-2.65 5.31-5.18 5.59.41.35.77 1.04.77 2.1 0 1.52-.01 2.74-.01 3.11 0 .3.2.66.79.55A11.26 11.26 0 0 0 23.25 11.75C23.25 5.48 18.27.5 12 .5Z" />
     </svg>
   );
@@ -228,7 +238,17 @@ function GithubMark({ size = 16, color }: { size?: number; color: string }) {
 
 function ArrowUpRight({ size = 14, color }: { size?: number; color: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M7 17 17 7M7 7h10v10" />
     </svg>
   );
@@ -236,7 +256,13 @@ function ArrowUpRight({ size = 14, color }: { size?: number; color: string }) {
 
 function Star({ size = 12, color }: { size?: number; color: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill={color}
+      aria-hidden="true"
+    >
       <path d="M12 2.5 15 9l7 .9-5.2 4.9L18.2 21 12 17.4 5.8 21l1.4-6.2L2 9.9 9 9z" />
     </svg>
   );
@@ -286,7 +312,8 @@ export function OpenSource() {
     docs: colors.text.tertiary,
   };
 
-  const monoFont = 'ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace';
+  const monoFont =
+    'ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace';
 
   const card: React.CSSProperties = {
     border: `1px solid ${colors.border.subtle}`,
@@ -312,18 +339,44 @@ export function OpenSource() {
     >
       <div style={{ maxWidth: 1040, margin: "0 auto" }}>
         {/* Eyebrow */}
-        <div style={{ display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.base }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: colors.surface.skillhive }} />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: spacing.sm,
+            marginBottom: spacing.base,
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: colors.surface.skillhive,
+            }}
+          />
           <Text
             variant="label"
-            style={{ color: colors.surface.skillhive, textTransform: "uppercase", letterSpacing: 1.5, fontFamily: monoFont }}
+            style={{
+              color: colors.surface.skillhive,
+              textTransform: "uppercase",
+              letterSpacing: 1.5,
+              fontFamily: monoFont,
+            }}
           >
             open source
           </Text>
         </div>
 
         {/* Hero */}
-        <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: spacing.xxxl, alignItems: "center" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.1fr 1fr",
+            gap: spacing.xxxl,
+            alignItems: "center",
+          }}
+        >
           <div>
             <Text
               as="h2"
@@ -340,14 +393,26 @@ export function OpenSource() {
             <Text
               variant="bodyLg"
               tone="secondary"
-              style={{ display: "block", maxWidth: 440, marginTop: spacing.base, color: colors.text.secondary }}
+              style={{
+                display: "block",
+                maxWidth: 440,
+                marginTop: spacing.base,
+                color: colors.text.secondary,
+              }}
             >
-              Not one repo — the app, the self-hosted auth server, and the
-              infra behind it, published as they actually exist. Pick
-              whichever piece you're curious about.
+              Not one repo — the app, the self-hosted auth server, and the infra
+              behind it, published as they actually exist. Pick whichever piece
+              you're curious about.
             </Text>
 
-            <div style={{ gap: spacing.lg, marginTop: spacing.xl, flexWrap: "wrap" }} className="flex">
+            <div
+              style={{
+                gap: spacing.lg,
+                marginTop: spacing.xl,
+                flexWrap: "wrap",
+              }}
+              className="flex"
+            >
               <a
                 href={ORG_URL}
                 target="_blank"
@@ -367,8 +432,9 @@ export function OpenSource() {
                 }}
               >
                 <span className="transition-ui group-hover:scale-[1.025]  flex gap-2 items-center">
-                <GithubMark size={16} color={colors.text.onTint} />
-                View organisation</span>
+                  <GithubMark size={16} color={colors.text.onTint} />
+                  View organisation
+                </span>
               </a>
               <a
                 href={ORG_REPOS_URL}
@@ -393,7 +459,15 @@ export function OpenSource() {
 
           {/* Signature: cross-repo activity log */}
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <div className="transition-ui " style={{ ...card, width: "100%", maxWidth: 460, overflow: "hidden" }}>
+            <div
+              className="transition-ui "
+              style={{
+                ...card,
+                width: "100%",
+                maxWidth: 460,
+                overflow: "hidden",
+              }}
+            >
               <div
                 style={{
                   display: "flex",
@@ -403,18 +477,73 @@ export function OpenSource() {
                   borderBottom: `1px solid ${colors.border.subtle}`,
                 }}
               >
-                <span style={{ width: 9, height: 9, borderRadius: "50%", background: colors.tint.danger, opacity: 0.7 }} />
-                <span style={{ width: 9, height: 9, borderRadius: "50%", background: colors.tint.warning, opacity: 0.7 }} />
-                <span style={{ width: 9, height: 9, borderRadius: "50%", background: colors.tint.success, opacity: 0.7 }} />
-                <Text variant="caption" tone="tertiary" style={{ marginLeft: spacing.xs, fontFamily: monoFont, color: colors.text.tertiary }}>
+                <span
+                  style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: "50%",
+                    background: colors.tint.danger,
+                    opacity: 0.7,
+                  }}
+                />
+                <span
+                  style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: "50%",
+                    background: colors.tint.warning,
+                    opacity: 0.7,
+                  }}
+                />
+                <span
+                  style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: "50%",
+                    background: colors.tint.success,
+                    opacity: 0.7,
+                  }}
+                />
+                <Text
+                  variant="caption"
+                  tone="tertiary"
+                  style={{
+                    marginLeft: spacing.xs,
+                    fontFamily: monoFont,
+                    color: colors.text.tertiary,
+                  }}
+                >
                   activity — across repos
                 </Text>
               </div>
-              <div style={{ padding: spacing.base, display: "flex", flexDirection: "column", gap: spacing.sm }}>
+              <div
+                style={{
+                  padding: spacing.base,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: spacing.sm,
+                }}
+              >
                 {COMMIT_LOG.map((entry) => (
-                  <div key={entry.hash} style={{ fontFamily: monoFont, fontSize: 12.5, lineHeight: 1.6 }}>
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: spacing.xs }}>
-                      <span style={{ color: colors.text.tertiary }}>{entry.hash}</span>
+                  <div
+                    key={entry.hash}
+                    style={{
+                      fontFamily: monoFont,
+                      fontSize: 12.5,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "baseline",
+                        gap: spacing.xs,
+                      }}
+                    >
+                      <span style={{ color: colors.text.tertiary }}>
+                        {entry.hash}
+                      </span>
                       <span
                         style={{
                           color: colors.text.tertiary,
@@ -430,9 +559,18 @@ export function OpenSource() {
                         {entry.kind}
                         {entry.scope ? `(${entry.scope})` : ""}:
                       </span>
-                      <span style={{ marginLeft: "auto", color: colors.text.tertiary }}>{entry.date}</span>
+                      <span
+                        style={{
+                          marginLeft: "auto",
+                          color: colors.text.tertiary,
+                        }}
+                      >
+                        {entry.date}
+                      </span>
                     </div>
-                    <div style={{ color: colors.text.primary, marginTop: 2 }}>{entry.message}</div>
+                    <div style={{ color: colors.text.primary, marginTop: 2 }}>
+                      {entry.message}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -442,125 +580,192 @@ export function OpenSource() {
 
         {/* Repositories */}
         <div style={{ marginTop: spacing.xxxl }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: spacing.lg }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              marginBottom: spacing.lg,
+            }}
+          >
             <Text variant="label" style={{ ...sectionLabel, marginBottom: 0 }}>
               Repositories
             </Text>
-            <div style={{ display: "flex", alignItems: "center", gap: spacing.xs }}>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: spacing.xs }}
+            >
               <span
                 style={{
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
-                  background: isLive ? colors.tint.success : colors.text.tertiary,
+                  background: isLive
+                    ? colors.tint.success
+                    : colors.text.tertiary,
                 }}
               />
-              <Text variant="caption" tone="tertiary" style={{ fontFamily: monoFont, color: colors.text.tertiary }}>
+              <Text
+                variant="caption"
+                tone="tertiary"
+                style={{ fontFamily: monoFont, color: colors.text.tertiary }}
+              >
                 {isLive ? "live" : "baseline"}
               </Text>
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: spacing.md }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: spacing.md,
+            }}
+          >
             {repos.map((repo) => (
-             <a key={repo.name}
-  href={`${ORG_URL}/${repo.name}`}
-  target="_blank"
-  rel="noreferrer"
-  className="hover:scale-[1.025] hover:shadow-md hover:!border-[#fffd01] shadow-yellow-400/10 active:scale-[0.975] active:shadow-sm transition-ui"
-  style={{ ...card, display: "block", padding: spacing.lg, textDecoration: "none" }}
->
-  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-    <BookMarked size={14} color={colors.text.tertiary} />
-    <Text
-      className="uppercase"
-      style={{
-        color: colors.text.primary,
-        fontWeight: 700,
-        fontSize: typography.bodyLg.size,
-        fontFamily: monoFont,
-      }}
-    >
-      {repo.name}
-    </Text>
-    {repo.private && (
-      <span
-        style={{
-          fontSize: 10,
-          border: `1px solid ${colors.text.tertiary}`,
-          borderRadius: 999,
-          padding: "1px 6px",
-          color: colors.text.tertiary,
-          fontFamily: monoFont,
-        }}
-      >
-        private
-      </span>
-    )}
-  </div>
+              <a
+                key={repo.name}
+                href={`${ORG_URL}/${repo.name}`}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:scale-[1.025] hover:shadow-md hover:!border-[#fffd01] shadow-yellow-400/10 active:scale-[0.975] active:shadow-sm transition-ui"
+                style={{
+                  ...card,
+                  display: "block",
+                  padding: spacing.lg,
+                  textDecoration: "none",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <BookMarked size={14} color={colors.text.tertiary} />
+                  <Text
+                    className="uppercase"
+                    style={{
+                      color: colors.text.primary,
+                      fontWeight: 700,
+                      fontSize: typography.bodyLg.size,
+                      fontFamily: monoFont,
+                    }}
+                  >
+                    {repo.name}
+                  </Text>
+                  {repo.private && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        border: `1px solid ${colors.text.tertiary}`,
+                        borderRadius: 999,
+                        padding: "1px 6px",
+                        color: colors.text.tertiary,
+                        fontFamily: monoFont,
+                      }}
+                    >
+                      private
+                    </span>
+                  )}
+                </div>
 
-  <Text
-    variant="bodySm"
-    style={{
-      display: "block",
-      marginTop: spacing.xs,
-      color: colors.text.secondary,
-      lineHeight: 1.5,
-      minHeight: 36,
-    }}
-  >
-    {repo.description || "No description provided"}
-  </Text>
+                <Text
+                  variant="bodySm"
+                  style={{
+                    display: "block",
+                    marginTop: spacing.xs,
+                    color: colors.text.secondary,
+                    lineHeight: 1.5,
+                    minHeight: 36,
+                  }}
+                >
+                  {repo.description || "No description provided"}
+                </Text>
 
-  <div style={{ display: "flex", alignItems: "center", gap: spacing.md, marginTop: spacing.md, flexWrap: "wrap" }}>
-    {repo.language && (
-      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-        <span
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: "50%",
-            background: LANGUAGE_COLORS[repo.language] ?? colors.text.tertiary,
-          }}
-        />
-        <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary }}>
-          {repo.language}
-        </Text>
-      </div>
-    )}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: spacing.md,
+                    marginTop: spacing.md,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {repo.language && (
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 5 }}
+                    >
+                      <span
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          background:
+                            LANGUAGE_COLORS[repo.language] ??
+                            colors.text.tertiary,
+                        }}
+                      />
+                      <Text
+                        variant="caption"
+                        tone="tertiary"
+                        style={{ color: colors.text.tertiary }}
+                      >
+                        {repo.language}
+                      </Text>
+                    </div>
+                  )}
 
-    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-      <Star size={11} color={colors.text.tertiary} />
-      <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary }}>
-        {repo.stargazers_count}
-      </Text>
-    </div>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    <Star size={11} color={colors.text.tertiary} />
+                    <Text
+                      variant="caption"
+                      tone="tertiary"
+                      style={{ color: colors.text.tertiary }}
+                    >
+                      {repo.stargazers_count}
+                    </Text>
+                  </div>
 
-    {typeof repo.forks_count === "number" && (
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        <GitFork size={11} color={colors.text.tertiary} />
-        <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary }}>
-          {repo.forks_count}
-        </Text>
-      </div>
-    )}
+                  {typeof repo.forks_count === "number" && (
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 4 }}
+                    >
+                      <GitFork size={11} color={colors.text.tertiary} />
+                      <Text
+                        variant="caption"
+                        tone="tertiary"
+                        style={{ color: colors.text.tertiary }}
+                      >
+                        {repo.forks_count}
+                      </Text>
+                    </div>
+                  )}
 
-    {repo.updated_at && (
-      <Text variant="caption" tone="tertiary" style={{ color: colors.text.tertiary, marginLeft: "auto" }}>
-        Updated {formatRelativeTime(repo.updated_at)}
-      </Text>
-    )}
-  </div>
-</a>
+                  {repo.updated_at && (
+                    <Text
+                      variant="caption"
+                      tone="tertiary"
+                      style={{
+                        color: colors.text.tertiary,
+                        marginLeft: "auto",
+                      }}
+                    >
+                      Updated {formatRelativeTime(repo.updated_at)}
+                    </Text>
+                  )}
+                </div>
+              </a>
             ))}
           </div>
 
           <Text
             variant="caption"
             tone="tertiary"
-            style={{ display: "block", marginTop: spacing.md, color: colors.text.tertiary }}
+            style={{
+              display: "block",
+              marginTop: spacing.md,
+              color: colors.text.tertiary,
+            }}
           >
-            {stats.repoCount} public {stats.repoCount === 1 ? "repo" : "repos"} · {stats.stars} stars combined
+            {stats.repoCount} public {stats.repoCount === 1 ? "repo" : "repos"}{" "}
+            · {stats.stars} stars combined
           </Text>
         </div>
 
@@ -582,13 +787,30 @@ export function OpenSource() {
             }}
           >
             {PHILOSOPHY.map((point) => (
-              <div key={point.title} style={{ background: colors.surface.secondary, padding: spacing.lg }}>
-                <Text style={{ color: colors.surface.skillhive, fontWeight: 700, fontSize: typography.bodySm.size }}>
+              <div
+                key={point.title}
+                style={{
+                  background: colors.surface.secondary,
+                  padding: spacing.lg,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.surface.skillhive,
+                    fontWeight: 700,
+                    fontSize: typography.bodySm.size,
+                  }}
+                >
                   {point.title}
                 </Text>
                 <Text
                   variant="bodySm"
-                  style={{ display: "block", marginTop: spacing.sm, color: colors.text.secondary, lineHeight: 1.6 }}
+                  style={{
+                    display: "block",
+                    marginTop: spacing.sm,
+                    color: colors.text.secondary,
+                    lineHeight: 1.6,
+                  }}
                 >
                   {point.description}
                 </Text>
@@ -598,7 +820,14 @@ export function OpenSource() {
         </div>
 
         {/* Stack + Contribute */}
-        <div style={{ marginTop: spacing.xxxl, display: "grid", gridTemplateColumns: "1fr 1fr", gap: spacing.xxl }}>
+        <div
+          style={{
+            marginTop: spacing.xxxl,
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: spacing.xxl,
+          }}
+        >
           <div>
             <Text variant="label" style={sectionLabel}>
               Built with
@@ -620,27 +849,31 @@ export function OpenSource() {
                     color: colors.text.secondary,
                   }}
                 >
-                  <span style={{ color: colors.text.tertiary }}>{item.category}</span>
-                  <span style={{ color: colors.text.tertiary, opacity: 0.6 }}>/</span>
+                  <span style={{ color: colors.text.tertiary }}>
+                    {item.category}
+                  </span>
+                  <span style={{ color: colors.text.tertiary, opacity: 0.6 }}>
+                    /
+                  </span>
                   {item.name}
                 </span>
               ))}
               <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: spacing.xs,
-                    borderRadius: radii.pill,
-                    border: `1px solid ${colors.border.primary}`,
-                    background: colors.bg.accentDim,
-                    padding: `${spacing.xs + 2}px ${spacing.md}px`,
-                    fontFamily: monoFont,
-                    fontSize: 11.5,
-                    color: colors.text.secondary,
-                  }}
-                >
-                  Self Hosted Servers
-                </span>
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: spacing.xs,
+                  borderRadius: radii.pill,
+                  border: `1px solid ${colors.border.primary}`,
+                  background: colors.bg.accentDim,
+                  padding: `${spacing.xs + 2}px ${spacing.md}px`,
+                  fontFamily: monoFont,
+                  fontSize: 11.5,
+                  color: colors.text.secondary,
+                }}
+              >
+                Self Hosted Servers
+              </span>
             </div>
           </div>
 
@@ -660,14 +893,35 @@ export function OpenSource() {
               >
                 first contribution
               </div>
-              <div style={{ padding: spacing.base, display: "flex", flexDirection: "column", gap: spacing.md }}>
+              <div
+                style={{
+                  padding: spacing.base,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: spacing.md,
+                }}
+              >
                 {CONTRIBUTE_STEPS.map((step, i) => (
                   <div key={i} style={{ fontFamily: monoFont, fontSize: 12.5 }}>
                     <div style={{ display: "flex", gap: spacing.xs }}>
-                      <span className="select-none" style={{ color: colors.surface.skillhive }}>$</span>
-                      <span style={{ color: colors.text.primary }}>{step.command}</span>
+                      <span
+                        className="select-none"
+                        style={{ color: colors.surface.skillhive }}
+                      >
+                        $
+                      </span>
+                      <span style={{ color: colors.text.primary }}>
+                        {step.command}
+                      </span>
                     </div>
-                    <div style={{ marginLeft: spacing.md, color: colors.text.tertiary }}># {step.comment}</div>
+                    <div
+                      style={{
+                        marginLeft: spacing.md,
+                        color: colors.text.tertiary,
+                      }}
+                    >
+                      # {step.comment}
+                    </div>
                   </div>
                 ))}
               </div>
