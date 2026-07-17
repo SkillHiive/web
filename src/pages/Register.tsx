@@ -76,67 +76,67 @@ const monoFont =
 
 /* -------------------------------- Progress bar ------------------------------ */
 
-function ProgressBar({ step, colors }: { step: number; colors: Tokens["colors"] }) {
-  const steps = ["IDENTITY", "CREDENTIALS", "CONFIRM"] as const;
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      {steps.map((label, i) => {
-        const num = i + 1;
-        const done = step > num;
-        const active = step === num;
-        const circleColor = done || active ? colors.surface.skillhive : colors.border.subtle;
-        return (
-          <div
-            key={label}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              flex: i < steps.length - 1 ? 1 : "none",
-            }}
-          >
-            <div
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: "50%",
-                border: `1px solid ${circleColor}`,
-                background: done ? colors.surface.skillhive : "transparent",
-                color: done
-                  ? colors.text.onTint
-                  : active
-                    ? colors.surface.skillhive
-                    : colors.text.tertiary,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 8,
-                fontFamily: monoFont,
-                flexShrink: 0,
-                transition: "all 180ms ease",
-              }}
-            >
-              {done ? "✓" : num}
-            </div>
-            <span
-              style={{
-                fontSize: 8,
-                letterSpacing: 1.5,
-                fontFamily: monoFont,
-                color: active || done ? colors.text.secondary : colors.text.tertiary,
-              }}
-            >
-              {label}
-            </span>
-            {i < steps.length - 1 && (
-              <div style={{ flex: 1, height: 1, background: colors.border.subtle, margin: "0 4px" }} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+// function ProgressBar({ step, colors }: { step: number; colors: Tokens["colors"] }) {
+//   const steps = ["IDENTITY", "CREDENTIALS", "CONFIRM"] as const;
+//   return (
+//     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+//       {steps.map((label, i) => {
+//         const num = i + 1;
+//         const done = step > num;
+//         const active = step === num;
+//         const circleColor = done || active ? colors.surface.skillhive : colors.border.subtle;
+//         return (
+//           <div
+//             key={label}
+//             style={{
+//               display: "flex",
+//               alignItems: "center",
+//               gap: 6,
+//               flex: i < steps.length - 1 ? 1 : "none",
+//             }}
+//           >
+//             <div
+//               style={{
+//                 width: 20,
+//                 height: 20,
+//                 borderRadius: "50%",
+//                 border: `1px solid ${circleColor}`,
+//                 background: done ? colors.surface.skillhive : "transparent",
+//                 color: done
+//                   ? colors.text.onTint
+//                   : active
+//                     ? colors.surface.skillhive
+//                     : colors.text.tertiary,
+//                 display: "flex",
+//                 alignItems: "center",
+//                 justifyContent: "center",
+//                 fontSize: 8,
+//                 fontFamily: monoFont,
+//                 flexShrink: 0,
+//                 transition: "all 180ms ease",
+//               }}
+//             >
+//               {done ? "✓" : num}
+//             </div>
+//             <span
+//               style={{
+//                 fontSize: 8,
+//                 letterSpacing: 1.5,
+//                 fontFamily: monoFont,
+//                 color: active || done ? colors.text.secondary : colors.text.tertiary,
+//               }}
+//             >
+//               {label}
+//             </span>
+//             {i < steps.length - 1 && (
+//               <div style={{ flex: 1, height: 1, background: colors.border.subtle, margin: "0 4px" }} />
+//             )}
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// }
 
 /* ----------------------------------- Field ---------------------------------- */
 
@@ -356,42 +356,42 @@ function PwMeter({ password, colors }: { password: string; colors: Tokens["color
 
 /* -------------------------------- Back button -------------------------------- */
 
-function BackButton({ onClick, colors, radii }: { onClick?: () => void; colors: Tokens["colors"]; radii: Tokens["radii"] }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      aria-label="Go back"
-      style={{
-        width: 34,
-        height: 34,
-        borderRadius: radii.sm ?? radii.md,
-        border: `1px solid ${hovered ? colors.surface.skillhive : colors.border.subtle}`,
-        background: "transparent",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        transform: hovered ? "scale(0.95)" : "scale(1)",
-        transition: "all 150ms ease",
-      }}
-    >
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-        <path
-          d="M8 2L3 6.5L8 11"
-          stroke={colors.text.secondary}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
-  );
-}
+// function BackButton({ onClick, colors, radii }: { onClick?: () => void; colors: Tokens["colors"]; radii: Tokens["radii"] }) {
+//   const [hovered, setHovered] = useState(false);
+//   return (
+//     <button
+//       type="button"
+//       onClick={onClick}
+//       onMouseEnter={() => setHovered(true)}
+//       onMouseLeave={() => setHovered(false)}
+//       aria-label="Go back"
+//       style={{
+//         width: 34,
+//         height: 34,
+//         borderRadius: radii.sm ?? radii.md,
+//         border: `1px solid ${hovered ? colors.surface.skillhive : colors.border.subtle}`,
+//         background: "transparent",
+//         cursor: "pointer",
+//         display: "flex",
+//         alignItems: "center",
+//         justifyContent: "center",
+//         flexShrink: 0,
+//         transform: hovered ? "scale(0.95)" : "scale(1)",
+//         transition: "all 150ms ease",
+//       }}
+//     >
+//       <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+//         <path
+//           d="M8 2L3 6.5L8 11"
+//           stroke={colors.text.secondary}
+//           strokeWidth="1.5"
+//           strokeLinecap="round"
+//           strokeLinejoin="round"
+//         />
+//       </svg>
+//     </button>
+//   );
+// }
 
 /* -------------------------------- Submit button ------------------------------- */
 
@@ -508,7 +508,7 @@ function SuccessScreen({ email, colors }: { email: string; colors: Tokens["color
 
 const ALL_FIELDS: FieldId[] = ["displayName", "username", "email", "password", "confirm"];
 
-export default function SignUpScreen({ onBack, onSubmit }: SignUpScreenProps) {
+export default function SignUpScreen({ onSubmit }: SignUpScreenProps) {
   const { colors, spacing, radii, typography } = useTokens();
 
   const [values, setValues] = useState<FormValues>({
@@ -540,19 +540,19 @@ export default function SignUpScreen({ onBack, onSubmit }: SignUpScreenProps) {
 
   const fieldIsValid = (id: FieldId) => !errors[id];
 
-  const step1Done = fieldIsValid("displayName") && fieldIsValid("username");
-  const step2Done = step1Done && fieldIsValid("email") && fieldIsValid("password");
-  const step3Done = step2Done && fieldIsValid("confirm");
-  const progressStep = step3Done ? 4 : step2Done ? 3 : step1Done ? 2 : 1;
+  // const step1Done = fieldIsValid("displayName") && fieldIsValid("username");
+  // const step2Done = step1Done && fieldIsValid("email") && fieldIsValid("password");
+  // const step3Done = step2Done && fieldIsValid("confirm");
+  // const progressStep = step3Done ? 4 : step2Done ? 3 : step1Done ? 2 : 1;
 
-  const sectionLabel: React.CSSProperties = {
-    fontSize: typography.label.size,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-    color: colors.text.tertiary,
-    fontWeight: typography.label.weight,
-    fontFamily: monoFont,
-  };
+  // const sectionLabel: React.CSSProperties = {
+  //   fontSize: typography.label.size,
+  //   letterSpacing: 1.2,
+  //   textTransform: "uppercase",
+  //   color: colors.text.tertiary,
+  //   fontWeight: typography.label.weight,
+  //   fontFamily: monoFont,
+  // };
 
   const handleSubmit = useCallback(async () => {
     setTouched(Object.fromEntries(ALL_FIELDS.map((f) => [f, true])) as TouchedMap);
