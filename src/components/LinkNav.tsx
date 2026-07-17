@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useRef, useState, useEffect } from "react";
-import { NavLink } from "react-router";
+import { NavLink, useLocation } from "react-router";
 
 type Position = {
   width?: number;
@@ -26,6 +26,8 @@ type TabProps = {
 };
 
 export const LinkNav = () => {
+  const location = useLocation();
+
   const [position, setPosition] = useState<Position>({
     left: 0,
     width: 0,
@@ -56,6 +58,11 @@ export const LinkNav = () => {
   useEffect(() => {
     moveToActive();
   }, []);
+
+  useEffect(() => {
+    moveToActive();
+  }, [location]);
+
 
   const isActiveByCursor = (el: HTMLElement) => {
     if (!position.width) return false;
