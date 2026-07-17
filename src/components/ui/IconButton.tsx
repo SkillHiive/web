@@ -42,6 +42,7 @@ export function IconButton({
       onMouseDown={() => setPressed(true)}
       onMouseUp={() => setPressed(false)}
       onMouseLeave={() => setPressed(false)}
+      className={`transition-ui group hover:scale-[1.050] shadow-yellow-400/30 active:scale-[0.975] ${variant === "primary" ? "active:shadow-sm" : ""}`}
       style={{
         position: "relative",
         width: size,
@@ -55,7 +56,6 @@ export function IconButton({
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.5 : 1,
         transform: pressed ? "scale(0.9)" : "scale(1)",
-        transition: "transform 0.12s cubic-bezier(0.2,0.8,0.2,1)",
         color: variant === "primary" ? colors.text.onTint : colors.text.primary,
         ...style,
       }}

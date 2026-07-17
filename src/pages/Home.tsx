@@ -12,6 +12,7 @@ import {
   CYCLE_MS,
 } from "@/hooks/sessionPhase";
 import { useActiveRooms } from "@/hooks/useActiveRooms";
+import { Plus } from "lucide-react";
 
 // ─── New Room modal (mirrors the mobile bottom sheet) ───────────────────────
 function NewRoomModal({
@@ -229,7 +230,8 @@ export default function Home() {
               </div>
             )}
             <Button
-              label="+ New Room"
+              label="New Room"
+              icon={<Plus size={14} />}
               size="sm"
               variant="primary"
               onClick={handleOpenSheet}

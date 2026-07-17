@@ -12,13 +12,14 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 export interface ButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "style"> {
-  label: string;
+  label?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
   fullWidth?: boolean;
   loading?: boolean;
+  icon?: React.ReactNode;
   style?: React.CSSProperties;
 }
 
@@ -37,6 +38,7 @@ export function Button({
   fullWidth,
   loading,
   disabled,
+  icon,
   style,
   ...rest
 }: ButtonProps) {
@@ -87,6 +89,7 @@ export function Button({
       onMouseDown={() => setPressed(true)}
       onMouseUp={() => setPressed(false)}
       onMouseLeave={() => setPressed(false)}
+      className={`transition-ui group hover:scale-[1.050] shadow-yellow-400/30 active:scale-[0.975] ${isPrimary ? 'active:shadow-sm' : ''} `}
       style={{
         height: HEIGHT[size],
         padding: `0 ${padX[size]}px`,
@@ -101,8 +104,6 @@ export function Button({
         width: fullWidth ? "100%" : undefined,
         cursor: disabled || loading ? "not-allowed" : "pointer",
         opacity: disabled ? 0.5 : pressed ? 0.92 : 1,
-        transform: pressed ? "scale(0.96)" : "scale(1)",
-        transition: "transform 0.12s cubic-bezier(0.2,0.8,0.2,1), opacity 0.12s",
         fontFamily: "inherit",
         outline: "none",
         ...style,
@@ -114,6 +115,7 @@ export function Button({
       ) : (
         <>
           {leading}
+          {icon && <div className="flex ">{icon}</div>}
           <Text
             variant={size === "lg" ? "subtitle" : "label"}
             style={{ color: fg }}

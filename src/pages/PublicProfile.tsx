@@ -404,7 +404,7 @@ export default function PublicProfile() {
       <div
         style={{
           minHeight: "100vh",
-          background: colors.bg.primary,
+          
           paddingBottom: 120,
           fontFamily: FONT,
         }}
@@ -413,16 +413,23 @@ export default function PublicProfile() {
         <div
           style={{
             position: "relative",
-            height: 200,
-            width: "100%",
+            margin: "0 auto",
             overflow: "hidden",
-            background: colors.surface.secondary,
           }}
+          className="flex justify-center items-center"
         >
+        <div 
+        style={{
+          maxHeight: 250,
+            maxWidth: 800,
+            aspectRatio: "1000/350",
+            zIndex: -1,
+        }}>
           {viewed.banner ? (
             <img
               src={viewed.banner}
               alt=""
+              className="rounded-b-lg"
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (
@@ -430,15 +437,14 @@ export default function PublicProfile() {
               style={{
                 width: "100%",
                 height: "100%",
-                background: `linear-gradient(135deg, ${colors.surface.secondary}, ${colors.surface.skillhive}22, ${colors.surface.secondary})`,
               }}
             />
           )}
+          </div>
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: "rgba(10,10,10,0.35)",
             }}
           />
           <button
