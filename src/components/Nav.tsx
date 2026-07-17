@@ -1,5 +1,5 @@
 import { LinkNav } from "./LinkNav";
-// import NotificationBell from "./NotificationBell";
+import NotificationBell from "./NotificationBell";
 
 const Nav = () => {
   return (
@@ -17,7 +17,7 @@ const Nav = () => {
                 </div> */}
         <div className="nav-center pointer-events-auto w-fit flex justify-center items-center gap-2 transition-ui">
           <LinkNav />
-          {/* <NotificationBell /> */}
+          <NotificationBell />
         </div>
         {/* <div className="nav-right flex justify-end items-center mx-5">
           <div className="profile-btn w-35 hover:scale-[1.05] active:scale-[1.015] transition-ui">
