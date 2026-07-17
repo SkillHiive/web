@@ -73,7 +73,7 @@ export default function Profile() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [uploadingAv, setUploadingAv] = useState(false);
-  const [uploadingBn, setUploadingBn] = useState(false);
+  // const [uploadingBn, setUploadingBn] = useState(false);
 
   const isFetchingMore = useRef(false);
   const avInputRef = useRef<HTMLInputElement>(null);
@@ -145,7 +145,7 @@ export default function Profile() {
   async function uploadImage(file: File, type: "avatar" | "banner") {
     const uid = profile?.id;
     if (!uid) return;
-    type === "avatar" ? setUploadingAv(true) : setUploadingBn(true);
+    type === "avatar" ? setUploadingAv(true) : null;
     try {
       const ext = file.name.split(".").pop() ?? "jpg";
       const path = `${uid}/${type}-${Date.now()}.${ext}`;
@@ -163,7 +163,7 @@ export default function Profile() {
     } catch (e) {
       console.error("Upload failed:", e);
     } finally {
-      type === "avatar" ? setUploadingAv(false) : setUploadingBn(false);
+      type === "avatar" ? setUploadingAv(false) : null;
     }
   }
 
