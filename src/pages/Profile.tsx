@@ -12,7 +12,7 @@ import {
   Monitor,
 } from "lucide-react";
 import SwipeLayout from "@/components/SwipeLayout";
-import { Text } from "@/components/ui";
+import { Button, Text } from "@/components/ui";
 import { PostCard, type PostModel } from "@/components/feed/PostCards";
 import { useTokens } from "@/theme";
 import { useTheme } from "@/components/theme-provider";
@@ -281,6 +281,15 @@ export default function Profile() {
             position: "relative",
           }}
         >
+          <div className="absolute right-8 top-4">
+            <Button
+              label="Edit Profile"
+              size="sm"
+              icon={<Pen size={14} />}
+              variant="primary"
+              onClick={() => navigate("/settings/profile")}
+            />
+          </div>
           <div
             style={{
               background: colors.bg.muted,
@@ -294,12 +303,10 @@ export default function Profile() {
             {/* avatar row */}
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
                 marginTop: -40,
                 marginBottom: spacing.base,
               }}
+              className="w-fit"
             >
               <div
                 onClick={() => avInputRef.current?.click()}
@@ -350,28 +357,6 @@ export default function Profile() {
                   )}
                 </div>
               </div>
-
-              <button
-                onClick={() => navigate("/settings/profile")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "8px 16px",
-                  border: `1px solid ${colors.surface.skillhive}`,
-                  background: colors.bg.accentDim,
-                  color: colors.text.skillhive,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: 1.5,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  borderRadius: radii.pill,
-                }}
-              >
-                <Pen size={10} />
-                Edit Profile
-              </button>
             </div>
 
             {/* name + username */}

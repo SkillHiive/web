@@ -13,8 +13,9 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/hooks/profileContext";
 import { useTokens } from "@/theme";
-import { Text, Avatar } from "@/components/ui";
+import { Text, Avatar, IconButton } from "@/components/ui";
 import ActionRow from "@/components/ActionRow";
+import { Button } from "@/components/ui";
 
 // ─────────────────────────────────────────
 // TYPES
@@ -470,7 +471,7 @@ export default function Post() {
         minHeight: "100vh",
         background: colors.bg.muted,
         fontFamily: FONT,
-        padding: "18px 20px",
+        padding: "24px 20px",
       }}
     >
       {/* ── HEADER ── */}
@@ -481,32 +482,17 @@ export default function Post() {
           zIndex: 10,
           display: "flex",
           alignItems: "center",
+          justifyContent: "end",
           gap: spacing.sm,
           padding: `${spacing.md}px ${spacing.base}px`,
           background: colors.bg.muted,
           borderBottom: `1px solid ${colors.border.subtle}`,
         }}
       >
-        <button
-          onClick={() => navigate(-1)}
-          aria-label="Back"
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            color: colors.text.primary,
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <ArrowLeft size={22} strokeWidth={2} />
-        </button>
-        <Text variant="body" weight={700} numberOfLines={1} style={{ flex: 1 }}>
-          {headerTitle}
-        </Text>
-
         {isOwner && !editing && (
-          <div style={{ display: "flex", gap: spacing.sm }}>
+          <div
+            style={{ display: "flex", gap: spacing.sm, alignItems: "center" }}
+          >
             <button
               onClick={() => setEditing(true)}
               style={{
@@ -617,26 +603,10 @@ export default function Post() {
               cursor: "pointer",
             }}
           >
-            <Avatar
-              name={post.profiles?.username ?? "?"}
-              source={post.profiles?.avatar}
-              size={32}
-            />
-            <div style={{ minWidth: 0 }}>
-              <Text
-                variant="bodySm"
-                tone="secondary"
-                weight={600}
-                numberOfLines={1}
-              >
-                {post.profiles?.username ?? "Unknown"}
-              </Text>
-              <Text variant="caption" tone="tertiary" style={{ marginTop: 1 }}>
-                {timeAgo(post.created_at)}
-              </Text>
-            </div>
-          </div>
-          <div
+            <IconButton variant="primary" onClick={() => navigate(-1)} aria-label="Back">
+              <ArrowLeft size={22} strokeWidth={2} />
+            </IconButton>
+            <div
             style={{
               background:
                 post.post_type === "offer"
@@ -645,6 +615,7 @@ export default function Post() {
               padding: "5px 8px",
               borderRadius: 999,
             }}
+            className="mr-auto"
           >
             <Text
               variant="caption"
@@ -662,6 +633,25 @@ export default function Post() {
                   ? "Project"
                   : "Media"}
             </Text>
+          </div>
+            <div className="text-right" style={{ minWidth: 0 }}>
+              <Text
+                variant="bodySm"
+                tone="secondary"
+                weight={600}
+                numberOfLines={1}
+              >
+                {post.profiles?.username ?? "Unknown"}
+              </Text>
+              <Text variant="caption" tone="tertiary" style={{ marginTop: 0 }}>
+                {timeAgo(post.created_at)}
+              </Text>
+            </div>
+            <Avatar
+              name={post.profiles?.username ?? "?"}
+              source={post.profiles?.avatar}
+              className="ml-1"
+            />
           </div>
         </div>
 
