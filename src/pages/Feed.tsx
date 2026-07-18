@@ -14,20 +14,14 @@ import { Avatar, Text } from "@/components/ui";
 import { PostCard, type PostModel } from "@/components/feed/PostCards";
 import { useTokens } from "@/theme";
 
-// ─────────────────────────────────────────
-// TYPES  (identical to mobile RawPost)
-// ─────────────────────────────────────────
 
 type PostType = "project" | "offer" | "media";
 type RawPost = PostModel & { post_type: PostType };
 
-// ─────────────────────────────────────────
-// CONSTANTS  (matched to mobile)
-// ─────────────────────────────────────────
 
 const PAGE_SIZE = 10;
-const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 min, same as mobile
-const POLL_INTERVAL = 30 * 1000; // 30s, same as mobile
+const REFRESH_INTERVAL = 5 * 60 * 1000;
+const POLL_INTERVAL = 30 * 1000;
 
 const FEED_QUERY = `
   id,
@@ -80,9 +74,6 @@ function todayLabel(): string {
   });
 }
 
-// ─────────────────────────────────────────
-// Themed pill toggle used across the composer / filters
-// ─────────────────────────────────────────
 
 function Chip({
   active,
@@ -118,9 +109,6 @@ function Chip({
   );
 }
 
-// ─────────────────────────────────────────
-// COMPOSE BAR  (mirrors ShareBar.tsx — same fields, same insert logic)
-// ─────────────────────────────────────────
 
 type OfferType = "full_time" | "part_time" | "internship" | "contract";
 
@@ -152,7 +140,6 @@ function ComposeBar({ onPosted }: { onPosted: () => void }) {
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // project fields
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [currentlyWorking, setCurrentlyWorking] = useState(true);
@@ -161,14 +148,12 @@ function ComposeBar({ onPosted }: { onPosted: () => void }) {
   );
   const [endedAt, setEndedAt] = useState<string>("");
 
-  // offer fields
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [salaryRange, setSalaryRange] = useState("");
   const [location, setLocation] = useState("");
   const [offerType, setOfferType] = useState<OfferType>("full_time");
 
-  // image
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -684,9 +669,6 @@ function ComposeBar({ onPosted }: { onPosted: () => void }) {
   );
 }
 
-// ─────────────────────────────────────────
-// FEED PAGE
-// ─────────────────────────────────────────
 
 export default function Feed() {
   const { profile } = useProfile();

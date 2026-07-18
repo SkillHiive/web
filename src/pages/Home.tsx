@@ -14,7 +14,6 @@ import {
 import { useActiveRooms } from "@/hooks/useActiveRooms";
 import { Plus } from "lucide-react";
 
-// ─── New Room modal (mirrors the mobile bottom sheet) ───────────────────────
 function NewRoomModal({
   open,
   onClose,

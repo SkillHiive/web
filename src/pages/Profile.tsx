@@ -26,9 +26,6 @@ import { PostCard, type PostModel } from "@/components/feed/PostCards";
 import { useTokens } from "@/theme";
 import { useTheme } from "@/components/theme-provider";
 
-// ─────────────────────────────────────────
-// CONSTANTS
-// ─────────────────────────────────────────
 
 const PAGE_SIZE = 10;
 
@@ -65,15 +62,11 @@ const FEED_QUERY = `
   )
 `;
 
-// avatar: 1:1 · banner: 1000/350
 const ASPECT_RATIOS: Record<"avatar" | "banner", number> = {
   avatar: 1,
   banner: 1000 / 350,
 };
 
-// ─────────────────────────────────────────
-// PROFILE PAGE
-// ─────────────────────────────────────────
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -90,7 +83,6 @@ export default function Profile() {
   const [uploadingAv, setUploadingAv] = useState(false);
   const [uploadingBn, setUploadingBn] = useState(false);
 
-  // ── crop dialog state ──
   const [cropType, setCropType] = useState<"avatar" | "banner" | null>(null);
   const [cropPickedFile, setCropPickedFile] = useState<File | null>(null);
 
@@ -98,7 +90,6 @@ export default function Profile() {
   const avInputRef = useRef<HTMLInputElement>(null);
   const bnInputRef = useRef<HTMLInputElement>(null);
 
-  // ── ally count ──
   useEffect(() => {
     if (!profile?.id) return;
     void supabase
@@ -109,7 +100,6 @@ export default function Profile() {
       .then(({ count }) => setAllyCount(count ?? 0));
   }, [profile?.id]);
 
-  // ── fetch posts ──
   const fetchUserPosts = useCallback(
     async (isRefresh = false) => {
       const uid = profile?.id;
@@ -160,7 +150,6 @@ export default function Profile() {
     if (profile?.id) void fetchUserPosts();
   }, [profile?.id, fetchUserPosts]);
 
-  // ── image upload (now receives an already-cropped blob) ──
   async function uploadImage(blob: Blob, type: "avatar" | "banner") {
     const uid = profile?.id;
     if (!uid) return;
@@ -192,8 +181,6 @@ export default function Profile() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    // Route the picked file into the crop dialog instead of uploading
-    // straight away — the dialog owns the final upload.
     setCropType(type);
     setCropPickedFile(file);
   }
@@ -701,12 +688,7 @@ export default function Profile() {
   );
 }
 
-// ─────────────────────────────────────────
-// CROP DIALOG
-// ─────────────────────────────────────────
 // A self-contained upload → crop → confirm flow. No external cropping
-// library — a fixed-aspect box the user can drag and resize (by its
-// corners) over the image, rendered to a canvas on confirm.
 
 interface CropBox {
   x: number;
@@ -748,7 +730,6 @@ function ImageCropDialog({
 
   const previewH = 340;
 
-  // load the initially-picked file as soon as the dialog mounts
   useEffect(() => {
     if (initialFile) {
       const url = URL.createObjectURL(initialFile);
@@ -763,8 +744,6 @@ function ImageCropDialog({
     setImgNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
 
     const rect = img.getBoundingClientRect();
-    // default crop box: as large as possible at the target aspect,
-    // centered on the displayed image
     let w = rect.width;
     let h = w / aspect;
     if (h > rect.height) {
@@ -824,7 +803,6 @@ function ImageCropDialog({
       return;
     }
 
-    // resize: scale from the opposite corner, preserving aspect ratio
     const { x, y, w, h } = drag.startBox;
     let newW = w;
     switch (drag.corner) {
@@ -854,7 +832,6 @@ function ImageCropDialog({
     } else if (drag.corner === "bl") {
       newX = x + (w - newW);
     }
-    // "br" keeps x/y as-is
 
     setBox(clampBox({ x: newX, y: newY, w: newW, h: newH }));
   }
@@ -925,8 +902,6 @@ function ImageCropDialog({
     },
   ];
 
-  // translate offset so the overlay/box line up with the image, which is
-  // centered inside the (larger) preview frame via flex alignment
   function imgOffset() {
     const img = imgRef.current;
     const frame = frameRef.current;
@@ -987,7 +962,6 @@ function ImageCropDialog({
         </div>
 
         {!imgSrc ? (
-          // ── step 1: pick a file ──
           <div
             style={{
               border: `1px dashed ${colors.border.subtle}`,
@@ -1012,7 +986,6 @@ function ImageCropDialog({
             />
           </div>
         ) : (
-          // ── step 2: crop ──
           <>
             <div
               ref={frameRef}
@@ -1140,9 +1113,6 @@ function ImageCropDialog({
   );
 }
 
-// ─────────────────────────────────────────
-// MINI COMPONENTS
-// ─────────────────────────────────────────
 
 function StatItem({
   value,

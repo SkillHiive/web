@@ -31,7 +31,6 @@ export function RoomLobby({ roomName, username, onJoin, onCancel }: RoomLobbyPro
 
   const initials = username.slice(0, 2).toUpperCase();
 
-  // ── Start / stop camera preview ───────────────────────────────────────────
   const startPreview = useCallback(async (facingMode: "user" | "environment") => {
     try {
       if (streamRef.current) {
@@ -58,13 +57,11 @@ export function RoomLobby({ roomName, username, onJoin, onCancel }: RoomLobbyPro
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
-  // Start preview on mount if camOn
   React.useEffect(() => {
     if (camOn) startPreview(facing);
     return () => stopPreview();
   }, []);
 
-  // ── Toggle camera ─────────────────────────────────────────────────────────
   const toggleCamera = useCallback(async () => {
     const next = !camOn;
     if (next) {
@@ -76,7 +73,6 @@ export function RoomLobby({ roomName, username, onJoin, onCancel }: RoomLobbyPro
     }
   }, [camOn, facing, startPreview, stopPreview]);
 
-  // ── Flip camera ───────────────────────────────────────────────────────────
   const flipCamera = useCallback(async () => {
     setIsSwitching(true);
     const nextFacing: "user" | "environment" = facing === "user" ? "environment" : "user";

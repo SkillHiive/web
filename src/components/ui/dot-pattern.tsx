@@ -40,10 +40,10 @@ interface DotPatternProps extends React.SVGProps<SVGSVGElement> {
  * @see DotPatternProps for the props interface.
  *
  * @example
- * // Basic usage
+ *
  * <DotPattern />
  *
- * // With glowing effect and custom spacing
+ *
  * <DotPattern
  *   width={20}
  *   height={20}

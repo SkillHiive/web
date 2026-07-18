@@ -71,10 +71,6 @@ export function useNotifications() {
 
     void fetchRequests();
 
-    // Polling instead of realtime: the backend's realtime WS is unreliable, and
-    // this hook is mounted app-wide (the top-bar bell), so a failing
-    // subscription would spam connection errors on every page. A quiet 30s poll
-    // keeps the badge fresh without the noise.
     const poll = setInterval(() => {
       void fetchRequests();
     }, 30000);
@@ -121,7 +117,6 @@ export function useNotifications() {
       return [];
     }
 
-    // Don't show another user's notifications while loading.
     if (loadedUserId !== userId) {
       return [];
     }

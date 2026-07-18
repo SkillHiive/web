@@ -16,9 +16,6 @@ import { useTokens } from "@/theme";
 import { Text, Avatar, IconButton } from "@/components/ui";
 import ActionRow from "@/components/ActionRow";
 
-// ─────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────
 
 type PostDetail = {
   id: string;
@@ -59,9 +56,6 @@ type Comment = {
   } | null;
 };
 
-// ─────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────
 
 function timeAgo(iso: string): string {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -119,9 +113,6 @@ const POST_DETAIL_QUERY = `
 const FONT =
   '"popreg", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 
-// ─────────────────────────────────────────
-// COMMENT ROW
-// ─────────────────────────────────────────
 
 function CommentRow({
   comment,
@@ -204,9 +195,6 @@ function CommentRow({
   );
 }
 
-// ─────────────────────────────────────────
-// SCREEN
-// ─────────────────────────────────────────
 
 export default function Post() {
   const { postId } = useParams<{ postId: string }>();
@@ -304,7 +292,6 @@ export default function Post() {
     fetchAll();
   }, [fetchAll]);
 
-  // poll every 8s
   useEffect(() => {
     pollRef.current = setInterval(() => {
       fetchAllRef.current?.();
@@ -314,7 +301,6 @@ export default function Post() {
     };
   }, []);
 
-  // auto-focus comment input when arriving via the comment button
   useEffect(() => {
     if (loading) return;
     if ((location.state as any)?.focusComment) {
@@ -389,7 +375,6 @@ export default function Post() {
     await fetchAllRef.current?.();
   }
 
-  // ── loading / error ──
   if (loading) {
     return (
       <div
@@ -444,12 +429,6 @@ export default function Post() {
   const topLevel = comments.filter((c) => !c.parent_id);
   const replies = comments.filter((c) => !!c.parent_id);
 
-  // const headerTitle =
-  //   post.post_type === "project" && pp
-  //     ? pp.title
-  //     : post.post_type === "offer" && op
-  //       ? (op.role ?? "Offer")
-  //       : "Post";
 
   const editField: React.CSSProperties = {
     width: "100%",

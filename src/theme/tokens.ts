@@ -1,9 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────
-// Web port of the mobile design tokens (SkillHive-mobile/constants/tokens.ts).
-// Values are kept identical so the web app reads with the same rhythm,
-// radii and colour language as the native app. Numbers are px unless noted.
-// ─────────────────────────────────────────────────────────────────────────
-
 export const spacing = {
   none: 0,
   xxs: 2,
@@ -48,9 +42,6 @@ export const typography = {
 
 export type TypographyToken = keyof typeof typography;
 
-// ─────────────────────────────────────────────────────────────────────────
-// Brand palette — SkillHive yellow.
-// ─────────────────────────────────────────────────────────────────────────
 const brand = {
   primary: "#fffd01",
   coral: "#fffd01",

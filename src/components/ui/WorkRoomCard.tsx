@@ -3,7 +3,6 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useTokens } from "@/theme";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type RoomState = "active" | "break" | "empty";
 
@@ -21,7 +20,6 @@ export interface WorkRoomCardProps {
   style?: React.CSSProperties;
 }
 
-// Accent colours are intentional per-state signals (focus = red, break = amber).
 const ACCENT = {
   active: "#FF4D4D",
   activeSoft: "rgba(255,77,77,0.10)",
@@ -36,7 +34,6 @@ const AVATAR_COLORS: [string, string][] = [
   ["#493221", "#FFC58A"],
 ];
 
-// Theme-aware palette for card chrome.
 function usePalette() {
   const { colors } = useTokens();
   return {
@@ -51,7 +48,6 @@ function usePalette() {
   };
 }
 
-// ─── Countdown hook ───────────────────────────────────────────────────────────
 
 function useCountdown(initialSeconds: number) {
   const snapshotRef = useRef(initialSeconds);
@@ -80,7 +76,6 @@ function useCountdown(initialSeconds: number) {
   return { formatted: `${mm}:${ss}`, progress };
 }
 
-// ─── PulseDot ─────────────────────────────────────────────────────────────────
 
 function PulseDot({ color }: { color: string }) {
   return (
@@ -97,7 +92,6 @@ function PulseDot({ color }: { color: string }) {
   );
 }
 
-// ─── ProgressBar ──────────────────────────────────────────────────────────────
 
 function ProgressBar({ progress, color, track }: { progress: number; color: string; track: string }) {
   const pct = `${Math.max(4, Math.round(progress * 100))}%`;
@@ -108,7 +102,6 @@ function ProgressBar({ progress, color, track }: { progress: number; color: stri
   );
 }
 
-// ─── AvatarStack ─────────────────────────────────────────────────────────────
 
 function AvatarStack({ names, ringBorder }: { names: string[]; ringBorder: string }) {
   const visible = names.slice(0, 3);
@@ -133,7 +126,6 @@ function AvatarStack({ names, ringBorder }: { names: string[]; ringBorder: strin
   );
 }
 
-// ─── Tag ─────────────────────────────────────────────────────────────────────
 
 function Tag({ label, color, bg }: { label: string; color: string; bg: string }) {
   return (
@@ -143,7 +135,6 @@ function Tag({ label, color, bg }: { label: string; color: string; bg: string })
   );
 }
 
-// ─── Button ──────────────────────────────────────────────────────────────────
 
 function Button({ label, onPress, filled, color }: { label: string; onPress?: () => void; filled?: boolean; color: string }) {
   const { colors } = useTokens();
@@ -161,7 +152,6 @@ function Button({ label, onPress, filled, color }: { label: string; onPress?: ()
   );
 }
 
-// ─── Card Shell ──────────────────────────────────────────────────────────────
 
 function Card({ children, style, accent }: { children: React.ReactNode; style?: React.CSSProperties; accent?: boolean }) {
   const p = usePalette();
@@ -172,7 +162,6 @@ function Card({ children, style, accent }: { children: React.ReactNode; style?: 
   );
 }
 
-// ─── ActiveCard ──────────────────────────────────────────────────────────────
 
 const ActiveCard = memo(function ActiveCard({ name, tag, members = [], timerSeconds = 1500, onJoin, style }: WorkRoomCardProps) {
   const p = usePalette();
@@ -209,7 +198,6 @@ const ActiveCard = memo(function ActiveCard({ name, tag, members = [], timerSeco
   );
 });
 
-// ─── BreakCard ───────────────────────────────────────────────────────────────
 
 const BreakCard = memo(function BreakCard({ name, tag, members = [], breakSeconds = 300, onJoin, style }: WorkRoomCardProps) {
   const p = usePalette();
@@ -246,7 +234,6 @@ const BreakCard = memo(function BreakCard({ name, tag, members = [], breakSecond
   );
 });
 
-// ─── EmptyCard ───────────────────────────────────────────────────────────────
 
 const EmptyCard = memo(function EmptyCard({ name, tag, style }: WorkRoomCardProps) {
   const p = usePalette();
@@ -268,7 +255,6 @@ const EmptyCard = memo(function EmptyCard({ name, tag, style }: WorkRoomCardProp
   );
 });
 
-// ─── Export ──────────────────────────────────────────────────────────────────
 
 export function WorkRoomCard(props: WorkRoomCardProps) {
   if (props.state === "active") return <ActiveCard {...props} />;

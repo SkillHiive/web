@@ -7,11 +7,6 @@ import NotificationList from "@/components/NotificationList";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTokens } from "@/theme";
 
-/**
- * Top-bar notification bell. Sits beside the nav links as a separate button;
- * shows a badge with the pending-request count and opens a dropdown with the
- * same notification content as the full page.
- */
 export default function NotificationBell() {
   const { colors, radii, spacing } = useTokens();
   const navigate = useNavigate();
@@ -30,7 +25,6 @@ export default function NotificationBell() {
   const [hover, setHover] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  // close on outside click / Escape
   useEffect(() => {
     if (!open) return;
     function onDown(e: MouseEvent) {

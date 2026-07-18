@@ -1,32 +1,15 @@
-// Hero.tsx
 
 import HUD from "@/components/HUD";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 export default function Hero() {
-  // const [ticketCount, setTicketCount] = useState(247);
   const [easterVisible, setEasterVisible] = useState(false);
 
   const ctaRef = useRef<HTMLButtonElement | null>(null);
-  // const logoClicks = useRef(0);
-  // const logoTimer = useRef<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // let timeout: number;
-    // const decrementTicket = () => {
-    //   setTicketCount((prev) => {
-    //     if (prev <= 0) return prev;
-    //     return prev - 1;
-    //   });
-    //   timeout = window.setTimeout(
-    //     decrementTicket,
-    //     4000 + Math.random() * 10000
-    //   );
-    // };
-    // timeout = window.setTimeout(decrementTicket, 3000);
-    // return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
@@ -65,30 +48,10 @@ export default function Hero() {
     }
   }, [easterVisible]);
 
-  // const handleLogoClick = () => {
-  //   logoClicks.current += 1;
 
-  //   const logo = document.getElementById("logoMark");
 
-  //   if (logo) {
-  //     logo.classList.remove("pulse");
-  //     void logo.offsetWidth;
-  //     logo.classList.add("pulse");
-  //   }
 
-  //   if (logoTimer.current) {
-  //     clearTimeout(logoTimer.current);
-  //   }
 
-  //   if (logoClicks.current >= 3) {
-  //     logoClicks.current = 0;
-  //     setEasterVisible(true);
-  //   } else {
-  //     logoTimer.current = window.setTimeout(() => {
-  //       logoClicks.current = 0;
-  //     }, 1500);
-  //   }
-  // };
 
   const handleCtaMove = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!ctaRef.current) return;
