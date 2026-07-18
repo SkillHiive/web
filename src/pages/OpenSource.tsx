@@ -292,6 +292,20 @@ function formatRelativeTime(dateStr: string) {
   return `${Math.floor(months / 12)}y ago`;
 }
 
+function useIsNarrow(breakpoint = 768) {
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const update = () => setIsNarrow(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, [breakpoint]);
+
+  return isNarrow;
+}
+
 /* ------------------------------ Main section ------------------------------ */
 /**
  * Drop-in "open source" showcase section for the SkillHive marketing site.
@@ -303,6 +317,7 @@ function formatRelativeTime(dateStr: string) {
 export function OpenSource() {
   const { colors, spacing, radii, typography } = useTokens();
   const { repos, stats, isLive } = useOrgRepos(FALLBACK_REPOS);
+  const isNarrow = useIsNarrow();
 
   const commitKindColor: Record<CommitLogEntry["kind"], string> = {
     feat: colors.tint.success,
@@ -372,7 +387,7 @@ export function OpenSource() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1.1fr 1fr",
+            gridTemplateColumns: isNarrow ? "1fr" : "1.1fr 1fr",
             gap: spacing.xxxl,
             alignItems: "center",
           }}
@@ -617,7 +632,7 @@ export function OpenSource() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: isNarrow ? "1fr" : "repeat(3, 1fr)",
               gap: spacing.md,
             }}
           >
@@ -777,7 +792,7 @@ export function OpenSource() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: isNarrow ? "1fr" : "repeat(3, 1fr)",
               gap: 1,
               background: colors.border.subtle,
               borderRadius: radii.lg,
@@ -824,7 +839,7 @@ export function OpenSource() {
           style={{
             marginTop: spacing.xxxl,
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: isNarrow ? "1fr" : "1fr 1fr",
             gap: spacing.xxl,
           }}
         >

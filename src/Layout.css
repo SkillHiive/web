@@ -817,11 +817,32 @@ footer {
 	}
 
 	.hero {
-		padding: 10rem 1.5rem 5rem;
+		max-height: none;
+		min-height: 100vh;
+		padding: 6rem 1.25rem 4rem;
+		overflow: visible;
+	}
+
+	.hero-content {
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.hero-cell.px-10 {
+		padding-left: 0;
+		padding-right: 0;
 	}
 
 	.hero-title {
-		font-size: clamp(5rem, 22vw, 8rem);
+		font-size: clamp(2.75rem, 14vw, 4.5rem);
+		margin-bottom: 1.75rem;
+		overflow: visible;
+	}
+
+	.hero-sub {
+		margin-bottom: 2rem;
+		font-size: 0.8rem;
+		line-height: 1.7;
 	}
 
 	.ticket-zone {
