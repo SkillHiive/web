@@ -1,14 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { useEffect, useRef } from "react";
 
-/**
- * Registers the current user as a participant of `roomName` in Supabase
- * (`room_participants`) and starts the room's focus/break session via RPC.
- *
- * This is what populates the `active_rooms` view that the Home screen reads —
- * without it, a room a user joins never appears for anyone else. Direct port of
- * the mobile `useRoomPresence` hook.
- */
 export function useRoomPresence(
   roomName: string | undefined,
   onJoinFailed?: () => void,
@@ -34,7 +26,6 @@ export function useRoomPresence(
 
         userIdRef.current = user.id;
 
-        // Clear any stale row for this user in this room first.
         await supabase
           .from("room_participants")
           .delete()
@@ -56,7 +47,6 @@ export function useRoomPresence(
           return;
         }
 
-        // Verify the write landed before considering ourselves joined.
         const { data: verify, error: verifyError } = await supabase
           .from("room_participants")
           .select("id")
@@ -70,7 +60,6 @@ export function useRoomPresence(
         participantId.current = data.id;
         joinedRef.current = true;
 
-        // Kick off the room session (sets session_started_at) exactly once.
         if (!sessionTriggeredRef.current) {
           sessionTriggeredRef.current = true;
           const { error } = await supabase.rpc(
@@ -125,7 +114,6 @@ export function useRoomPresence(
       }
     });
 
-    // Best-effort cleanup if the tab is closed/refreshed mid-session.
     const onUnload = () => {
       if (participantId.current) {
         void supabase

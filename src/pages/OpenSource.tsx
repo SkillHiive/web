@@ -3,7 +3,6 @@ import { useTokens } from "@/theme";
 import { Text } from "@/components/ui";
 import { BookMarked, GitFork } from "lucide-react";
 
-/* ---------------------------------- Types --------------------------------- */
 
 interface RepoCardData {
   name: string;
@@ -32,15 +31,9 @@ interface CommitLogEntry {
   date: string;
 }
 
-/* ------------------------------- Config ------------------------------- */
-
 const ORG = "SkillHiive";
 const ORG_URL = `https://github.com/${ORG}`;
 const ORG_REPOS_URL = `https://github.com/orgs/${ORG}/repositories`;
-
-// Displayed until the GitHub API fetch resolves, and used as a fallback if it
-// fails. Once repositories are public, these values should closely mirror the
-// actual repository descriptions.
 
 const FALLBACK_REPOS: RepoCardData[] = [
   {
@@ -169,11 +162,6 @@ const CONTRIBUTE_STEPS = [
   },
 ];
 
-/* --------------------------------- Hook ---------------------------------- */
-// Fetches the org's public, non-fork repos and derives both the card list
-// and aggregate stats from the same response — one call, no N+1 fan-out.
-// Falls back silently on failure or rate limit.
-
 function useOrgRepos(fallback: RepoCardData[]) {
   const [repos, setRepos] = useState<RepoCardData[]>(fallback);
   const [isLive, setIsLive] = useState(false);
@@ -218,9 +206,6 @@ function useOrgRepos(fallback: RepoCardData[]) {
 
   return { repos, stats, isLive };
 }
-
-/* ------------------------------- Icons ------------------------------ */
-// No brand-icon dependency — inlined so this has no extra install step.
 
 function GithubMark({ size = 16, color }: { size?: number; color: string }) {
   return (
@@ -268,7 +253,6 @@ function Star({ size = 12, color }: { size?: number; color: string }) {
   );
 }
 
-// GitHub's real per-language colors — extend as needed
 const LANGUAGE_COLORS: Record<string, string> = {
   TypeScript: "#3178c6",
   JavaScript: "#f1e05a",
@@ -292,14 +276,6 @@ function formatRelativeTime(dateStr: string) {
   return `${Math.floor(months / 12)}y ago`;
 }
 
-/* ------------------------------ Main section ------------------------------ */
-/**
- * Drop-in "open source" showcase section for the SkillHive marketing site.
- * Framed at the org level (SkillHiveproject) since this spans multiple
- * repos — the app, the auth server, infra — not one monorepo.
- * Uses the same colors/spacing/radii/typography tokens as the rest of the
- * app via useTokens().
- */
 export function OpenSource() {
   const { colors, spacing, radii, typography } = useTokens();
   const { repos, stats, isLive } = useOrgRepos(FALLBACK_REPOS);

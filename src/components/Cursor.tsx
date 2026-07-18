@@ -1,4 +1,3 @@
-// components/CursorGlow.tsx
 
 import { useEffect, useRef, useState } from "react";
 

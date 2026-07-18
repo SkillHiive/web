@@ -1,7 +1,6 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import React from 'react';
 
-// Dropdown wrapper
 type DropdownProps = {
     title: React.ReactNode;
     children: React.ReactNode;
@@ -22,7 +21,6 @@ export function Dropdown({ title, children, className }: DropdownProps) {
     );
 }
 
-// Item component
 type DropItemProps = {
     children: React.ReactNode;
     onClick?: () => void;

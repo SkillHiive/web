@@ -1,5 +1,3 @@
-"use client";
-
 import React, {
   useCallback,
   useEffect,
@@ -21,20 +19,17 @@ import { useParams } from "react-router";
 import { useProfile } from "@/hooks/profileContext";
 import { useRoomPresence } from "@/hooks/useRoomPresence";
 import { useRoomSession } from "@/hooks/useRoomSession";
+import { useTokens } from "@/theme/useTokens";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 const LIVEKIT_URL = "wss://rooms.skillhiive.com";
 const TOKEN_ENDPOINT = "https://api.skillhivelabs.com/getToken";
 const SPEAKER_DEBOUNCE_MS = 800;
 const TILES_PER_PAGE = 6;
 const SIDEBAR_W = 300;
-
-// ─── Layout constants (responsive Meet-style grid) ────────────────────────────
 const TILE_ASPECT = 16 / 9;
 const GRID_GAP = 8;
 const MOBILE_BREAKPOINT = 700;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 type CubicleState =
   | { status: "idle" }
   | { status: "requesting"; targetIdentity: string }
@@ -43,55 +38,6 @@ type CubicleState =
 
 type SessionPhase = "waiting" | "focus" | "break";
 
-interface Colors {
-  bg: { canvas: string; muted: string; accentDim: string };
-  surface: {
-    primary: string;
-    secondary: string;
-    raised: string;
-    skillhive: string;
-  };
-  text: {
-    primary: string;
-    secondary: string;
-    tertiary: string;
-    inverse: string;
-    white: string;
-    skillhive: string;
-  };
-  border: { subtle: string; strong: string };
-  tint: { accent: string; success: string; danger: string; skillhive: string };
-  overlay: { scrim: string };
-}
-
-// Default dark theme matching the original
-const defaultColors: Colors = {
-  bg: { canvas: "#0d0d0d", muted: "#1a1a1a", accentDim: "#1a1f2e" },
-  surface: {
-    primary: "#141414",
-    secondary: "#1c1c1c",
-    raised: "#242424",
-    skillhive: "#4f6ef7",
-  },
-  text: {
-    primary: "#f0f0f0",
-    secondary: "#9a9a9a",
-    tertiary: "#555",
-    inverse: "#0d0d0d",
-    white: "#fff",
-    skillhive: "#7b93ff",
-  },
-  border: { subtle: "#2a2a2a", strong: "#3a3a3a" },
-  tint: {
-    accent: "#4f6ef7",
-    success: "#22c55e",
-    danger: "#ef4444",
-    skillhive: "#4f6ef7",
-  },
-  overlay: { scrim: "rgba(0,0,0,0.7)" },
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function initials(name: string) {
   return name.slice(0, 2).toUpperCase();
 }
@@ -106,11 +52,6 @@ interface GridLayout {
   tileH: number;
 }
 
-// Google-Meet-style optimal grid: search every possible column count and keep
-// whichever produces the largest tile area while respecting the target aspect
-// ratio. This guarantees tiles are never stretched or over-cropped regardless
-// of container shape (ultra-wide monitor, portrait phone, sidebar open, etc.)
-// or participant count — it's the same core approach Meet/Zoom Web use.
 function computeOptimalGrid(
   count: number,
   containerW: number,
@@ -133,11 +74,9 @@ function computeOptimalGrid(
   for (let cols = 1; cols <= count; cols++) {
     const rows = Math.ceil(count / cols);
 
-    // Fit to width first, respecting the aspect ratio.
     let tileW = (containerW - gap * (cols - 1)) / cols;
     let tileH = tileW / aspect;
 
-    // If that overflows available height, fit to height instead.
     const totalH = tileH * rows + gap * (rows - 1);
     if (totalH > containerH) {
       tileH = (containerH - gap * (rows - 1)) / rows;
@@ -156,7 +95,6 @@ function computeOptimalGrid(
   return best;
 }
 
-// ─── Audio device hook ────────────────────────────────────────────────────────
 interface AudioDevice {
   id: string;
   name: string;
@@ -192,28 +130,19 @@ function useAudioDevices() {
 
   const selectDevice = useCallback((id: string) => {
     setActiveId(id);
-    // In a real implementation: attach to audio elements via setSinkId
   }, []);
 
   return { devices, active, selectDevice };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RoomScreen
-// ─────────────────────────────────────────────────────────────────────────────
 export interface RoomScreenProps {
-  /** Called when the user leaves */
   onLeave: () => void;
-  /** Optional: Supabase client for presence + cubicle signalling */
   supabase?: any;
-  /** Optional: override colors */
-  colors?: Colors;
 }
 
 export default function RoomScreen({
   onLeave,
   supabase,
-  colors = defaultColors,
 }: RoomScreenProps) {
   const { roomName } = useParams<{ roomName: string }>();
   const { profile } = useProfile();
@@ -221,7 +150,6 @@ export default function RoomScreen({
   const [joinWithCam, setJoinWithCam] = useState(true);
   const [joinWithFrontCam, setJoinWithFrontCam] = useState(true);
 
-  // ── State ─────────────────────────────────────────────────────────────────
   const [token, setToken] = useState<string | null>(null);
   const [livekitReady, setLivekitReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -239,7 +167,6 @@ export default function RoomScreen({
   const [cubicleSet, setCubicleSet] = useState<Set<string>>(new Set());
   const [outputMenuOpen, setOutputMenuOpen] = useState(false);
 
-  // ── Refs ──────────────────────────────────────────────────────────────────
   const intentionalLeaveRef = useRef(false);
   const connectedRef = useRef(false);
   const micEnabledRef = useRef(false);
@@ -255,9 +182,8 @@ export default function RoomScreen({
   const autoRetryRef = useRef(0);
   const retryScheduledRef = useRef(false);
 
-  // ── Presence + session ──────────────────────────────────────────────────────
-  // Register this user in `room_participants` (which populates the `active_rooms`
-  // view others read) and start/track the focus-break session.
+  const { colors } = useTokens();
+
   useRoomPresence(roomName, () => {
     intentionalLeaveRef.current = true;
     setError("Couldn't join the room. Please try again.");
@@ -274,7 +200,6 @@ export default function RoomScreen({
     cubicleRef.current = cubicle;
   }, [cubicle]);
 
-  // ── Phase-change: mute mic when entering focus ────────────────────────────
   useEffect(() => {
     if (prevPhaseRef.current === "break" && phaseState.phase === "focus") {
       const lp = roomRef.current?.localParticipant;
@@ -290,11 +215,6 @@ export default function RoomScreen({
     prevPhaseRef.current = phaseState.phase;
   }, [phaseState.phase]);
 
-  // ── Init ──────────────────────────────────────────────────────────────────
-  // Wait for BOTH the lobby to be dismissed AND the profile username to be
-  // loaded before requesting a token. On a fresh session / hard reload the
-  // profile (and the auth session) rehydrate asynchronously — kicking off the
-  // token request too early was why the first join attempt silently failed.
   useEffect(() => {
     if (!lobbyDone) return;
     if (!profile?.username) return;
@@ -316,14 +236,8 @@ export default function RoomScreen({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobbyDone, profile?.username, retryTick]);
 
-  // ── Connect watchdog ────────────────────────────────────────────────────────
-  // The very first LiveKit connect after a cold page load often fails to bring
-  // up media (a manual leave + rejoin fixes it). If we haven't connected shortly
-  // after mounting the room, automatically retry once with a fresh Room instance
-  // (recreated via retryTick) before surfacing a manual retry.
   useEffect(() => {
     if (!livekitReady || !token) return;
     connectedRef.current = false;
@@ -346,8 +260,6 @@ export default function RoomScreen({
     return () => clearTimeout(t);
   }, [livekitReady, token, retryTick]);
 
-  // Resolve the auth session, retrying briefly since it can lag right after a
-  // hard reload (getSession returns null until storage is rehydrated).
   async function resolveSession() {
     if (!supabase) return null;
     for (let i = 0; i < 6; i++) {
@@ -372,8 +284,6 @@ export default function RoomScreen({
       username: profile.username,
     });
 
-    // Retry the token request a few times to ride out cold-starts / transient
-    // failures instead of failing the whole join on the first hiccup.
     let lastErr: unknown = null;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
@@ -412,7 +322,6 @@ export default function RoomScreen({
     return data.token as string;
   }
 
-  // ── Cubicle signalling ────────────────────────────────────────────────────
   useEffect(() => {
     if (!roomName || !profile?.username || !supabase) return;
     const ch = supabase.channel(`cubicle-signals:${roomName}`);
@@ -581,10 +490,6 @@ export default function RoomScreen({
     }
   }
 
-  // ── Stable Room instance ──────────────────────────────────────────────────
-  // Recreate the Room instance on each retry. A stale/half-connected Room can
-  // fail to publish media on the very first join after a cold page load; a
-  // fresh instance (what a manual leave + rejoin produces) connects cleanly.
   const room = useMemo(() => {
     const r = new Room({
       adaptiveStream: true,
@@ -613,7 +518,6 @@ export default function RoomScreen({
     return r;
   }, [cubicleToken]);
 
-  // ── handleConnected ───────────────────────────────────────────────────────
   const handleConnected = useCallback(async () => {
     if (connectedRef.current) return;
     connectedRef.current = true;
@@ -660,8 +564,6 @@ export default function RoomScreen({
     } catch {}
 
     if (joinWithCam) {
-      // Retry camera acquisition once — the first getUserMedia right after a
-      // cold connect can fail/race, leaving the local video tile blank.
       let camOk = false;
       for (let i = 0; i < 2 && !camOk; i++) {
         try {
@@ -691,14 +593,10 @@ export default function RoomScreen({
     const wasConnected = connectedRef.current;
     connectedRef.current = false;
     if (intentionalLeaveRef.current) return;
-    // Never-connected disconnect = a failed initial join (or the teardown of a
-    // stale attempt during retry). Do nothing here — the connect watchdog owns
-    // the retry/error decision, which avoids races with async disconnect events.
     if (!wasConnected) return;
     onLeave();
   }, [onLeave]);
 
-  // ── Mic / Cam ─────────────────────────────────────────────────────────────
   async function toggleMic() {
     if (cubicleRef.current.status === "active") return;
     if (!phaseState.micAllowed) {
@@ -780,7 +678,6 @@ export default function RoomScreen({
   );
   const unfocusParticipant = useCallback(() => setFocusedIdentity(null), []);
 
-  // ── Cubicle incoming alert ────────────────────────────────────────────────
   useEffect(() => {
     if (cubicle.status !== "incoming") {
       shownCubicleAlertRef.current = null;
@@ -789,7 +686,6 @@ export default function RoomScreen({
     const key = cubicle.fromIdentity;
     if (shownCubicleAlertRef.current === key) return;
     shownCubicleAlertRef.current = key;
-    // Use a custom dialog or native confirm
     const accepted = window.confirm(
       `${cubicle.fromIdentity} wants to open a private cubicle with you. Accept?`,
     );
@@ -797,7 +693,6 @@ export default function RoomScreen({
     else declineCubicle();
   }, [cubicle.status]);
 
-  // ── Lobby ─────────────────────────────────────────────────────────────────
   if (!lobbyDone) {
     return (
       <RoomLobby
@@ -930,7 +825,6 @@ export default function RoomScreen({
         onConnected={handleConnected}
         onDisconnected={handleDisconnected}
         onError={(e: any) => {
-          // Let the connect watchdog own retry/error; just log here.
           if (!connectedRef.current) {
             console.warn("LiveKit connect error:", e?.message ?? e);
           }
@@ -961,7 +855,6 @@ export default function RoomScreen({
               onParticipants={() => setSidebarOpen(true)}
               focusedIdentity={focusedIdentity}
               onUnfocus={unfocusParticipant}
-              colors={colors}
               inCubicle={cubicle.status === "active"}
               cubiclePartner={
                 cubicle.status === "active" ? cubicle.partnerIdentity : null
@@ -980,7 +873,6 @@ export default function RoomScreen({
               onUnfocus={unfocusParticipant}
               camOffSet={camOffSet}
               cubicleSet={cubicleSet}
-              colors={colors}
               onDoubleTap={sendCubicleRequest}
               myIdentity={profile?.username ?? ""}
             />
@@ -1004,7 +896,6 @@ export default function RoomScreen({
               onFlip={flipCamera}
               onOutput={() => setOutputMenuOpen((v) => !v)}
               onLeave={leave}
-              colors={colors}
               lockedForCubicle={cubicle.status === "active"}
               sessionPhase={phaseState.phase}
               focusRemainingSeconds={
@@ -1100,7 +991,6 @@ export default function RoomScreen({
               participants={participants}
               cubicleSet={cubicleSet}
               onClose={() => setSidebarOpen(false)}
-              colors={colors}
             />
           </div>
         </div>
@@ -1129,7 +1019,6 @@ export default function RoomScreen({
           <CubicleOverlay
             partnerIdentity={cubicle.partnerIdentity}
             onEnd={endCubicle}
-            colors={colors}
           />
         </LiveKitRoom>
       )}
@@ -1137,17 +1026,12 @@ export default function RoomScreen({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CubicleOverlay
-// ─────────────────────────────────────────────────────────────────────────────
 function CubicleOverlay({
   partnerIdentity,
   onEnd,
-  colors,
 }: {
   partnerIdentity: string;
   onEnd: () => void;
-  colors: Colors;
 }) {
   const allTracks = useTracks([Track.Source.Camera]);
   const { localParticipant } = useLocalParticipant();
@@ -1157,6 +1041,7 @@ function CubicleOverlay({
   const [partnerReady, setPartnerReady] = useState(false);
   const lpRef = useRef(localParticipant);
   const partnerReadyRef = useRef(false);
+  const { colors } = useTokens();
 
   useEffect(() => {
     lpRef.current = localParticipant;
@@ -1469,16 +1354,12 @@ function CubicleOverlay({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TopBar
-// ─────────────────────────────────────────────────────────────────────────────
 function TopBar({
   roomName,
   participantCount,
   onParticipants,
   focusedIdentity,
   onUnfocus,
-  colors,
   sessionPhase,
   sessionRemainingSeconds,
 }: {
@@ -1487,13 +1368,13 @@ function TopBar({
   onParticipants: () => void;
   focusedIdentity: string | null;
   onUnfocus: () => void;
-  colors: Colors;
   inCubicle: boolean;
   cubiclePartner: string | null;
   onEndCubicle: () => void;
   sessionPhase: SessionPhase;
   sessionRemainingSeconds: number;
 }) {
+  const { colors } = useTokens();
   const phaseLabel =
     sessionPhase === "focus"
       ? "Focus"
@@ -1632,16 +1513,12 @@ function TopBar({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ConferenceView — responsive, aspect-ratio-preserving grid (Meet-style)
-// ─────────────────────────────────────────────────────────────────────────────
 function ConferenceView({
   focusedIdentity,
   onFocus,
   onUnfocus,
   camOffSet,
   cubicleSet,
-  colors,
   onDoubleTap,
   myIdentity,
 }: {
@@ -1650,10 +1527,10 @@ function ConferenceView({
   onUnfocus: () => void;
   camOffSet: Set<string>;
   cubicleSet: Set<string>;
-  colors: Colors;
   onDoubleTap: (id: string) => void;
   myIdentity: string;
 }) {
+   const { colors } = useTokens();
   const rawTracks = useTracks([Track.Source.Camera]);
   const [activePage, setActivePage] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1670,7 +1547,6 @@ function ConferenceView({
     return () => ro.disconnect();
   }, []);
 
-  // ── Active-speaker sort ───────────────────────────────────────────────────
   const [topIdentity, setTopIdentity] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const speakingRef = useRef<string | null>(null);
@@ -1724,7 +1600,6 @@ function ConferenceView({
       onFocus,
       onUnfocus,
       isFocused: false,
-      colors,
       onDoubleTap,
       isMe: ref.participant.identity === myIdentity,
     };
@@ -1763,7 +1638,6 @@ function ConferenceView({
 
   const isMobile = gridW > 0 && gridW < MOBILE_BREAKPOINT;
 
-  // ── Focused / pinned layout ────────────────────────────────────────────
   if (focusedIdentity && gridW > 0 && gridH > 0) {
     const ft = tracks.find((t) => t.participant.identity === focusedIdentity);
     const ot = tracks.filter((t) => t.participant.identity !== focusedIdentity);
@@ -1789,7 +1663,6 @@ function ConferenceView({
         inCubicle={cubicleSet.has(focusedIdentity)}
         onFocus={onFocus}
         onUnfocus={onUnfocus}
-        colors={colors}
         onDoubleTap={onDoubleTap}
         isMe={focusedIdentity === myIdentity}
       />
@@ -1844,7 +1717,6 @@ function ConferenceView({
     );
   }
 
-  // ── Grid / paginated layout ─────────────────────────────────────────────
   if (gridW === 0 || gridH === 0) {
     return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />;
   }
@@ -1928,9 +1800,6 @@ function ConferenceView({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ParticipantTile
-// ─────────────────────────────────────────────────────────────────────────────
 function ParticipantTile({
   trackRef,
   width,
@@ -1940,7 +1809,6 @@ function ParticipantTile({
   onFocus,
   onUnfocus,
   isFocused,
-  colors,
   onDoubleTap,
   isMe,
 }: {
@@ -1952,10 +1820,10 @@ function ParticipantTile({
   onFocus: (id: string) => void;
   onUnfocus: () => void;
   isFocused: boolean;
-  colors: Colors;
   onDoubleTap: (id: string) => void;
   isMe: boolean;
 }) {
+  const { colors } = useTokens();
   const { participant: p } = trackRef;
   const isSpeaking = p.isSpeaking,
     isMuted = !p.isMicrophoneEnabled;
@@ -2244,16 +2112,12 @@ function ParticipantTile({
                 }
               : undefined
           }
-          colors={colors}
         />
       )}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AvatarTile
-// ─────────────────────────────────────────────────────────────────────────────
 function AvatarTile({
   identity,
   width,
@@ -2262,7 +2126,6 @@ function AvatarTile({
   inCubicle,
   onFocus,
   onUnfocus,
-  colors,
   onDoubleTap,
   isMe,
 }: {
@@ -2273,10 +2136,10 @@ function AvatarTile({
   inCubicle: boolean;
   onFocus: (id: string) => void;
   onUnfocus: () => void;
-  colors: Colors;
   onDoubleTap: (id: string) => void;
   isMe: boolean;
 }) {
+  const { colors } = useTokens();
   const [menuVisible, setMenuVisible] = useState(false);
   const lastTap = useRef<number>(0);
   function handleClick() {
@@ -2423,16 +2286,12 @@ function AvatarTile({
                 }
               : undefined
           }
-          colors={colors}
         />
       )}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TileMenu  — rendered as a bottom-sheet modal
-// ─────────────────────────────────────────────────────────────────────────────
 function TileMenu({
   visible,
   identity,
@@ -2441,7 +2300,6 @@ function TileMenu({
   onFocus,
   onUnfocus,
   onCubicle,
-  colors,
 }: {
   visible: boolean;
   identity: string;
@@ -2450,8 +2308,8 @@ function TileMenu({
   onFocus: () => void;
   onUnfocus: () => void;
   onCubicle?: () => void;
-  colors: Colors;
 }) {
+  const { colors } = useTokens();
   if (!visible) return null;
   return (
     <div
@@ -2541,7 +2399,6 @@ function TileMenu({
             label="Focus"
             sub="Pin this participant full screen"
             onClick={onFocus}
-            colors={colors}
           />
         ) : (
           <MenuItem
@@ -2550,7 +2407,6 @@ function TileMenu({
             label="Unfocus"
             sub="Return to grid view"
             onClick={onUnfocus}
-            colors={colors}
           />
         )}
 
@@ -2561,7 +2417,6 @@ function TileMenu({
             label="Open Cubicle"
             sub={`Private space with ${identity}`}
             onClick={onCubicle}
-            colors={colors}
           />
         )}
 
@@ -2595,15 +2450,14 @@ function MenuItem({
   label,
   sub,
   onClick,
-  colors,
 }: {
   icon: React.ReactNode;
   iconBg: string;
   label: string;
   sub: string;
   onClick: () => void;
-  colors: Colors;
 }) {
+    const { colors } = useTokens();
   return (
     <button
       onClick={onClick}
@@ -2649,9 +2503,6 @@ function MenuItem({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SpeakingBars
-// ─────────────────────────────────────────────────────────────────────────────
 function SpeakingBars({ color }: { color: string }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-end", gap: 2 }}>
@@ -2665,20 +2516,16 @@ function SpeakingBars({ color }: { color: string }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ParticipantsSidebar
-// ─────────────────────────────────────────────────────────────────────────────
 function ParticipantsSidebar({
   participants,
   cubicleSet,
   onClose,
-  colors,
 }: {
   participants: Participant[];
   cubicleSet: Set<string>;
   onClose: () => void;
-  colors: Colors;
 }) {
+  const { colors } = useTokens();
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Header */}
@@ -2826,9 +2673,6 @@ function ParticipantsSidebar({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ControlBar
-// ─────────────────────────────────────────────────────────────────────────────
 function ControlBar({
   micEnabled,
   camEnabled,
@@ -2839,7 +2683,6 @@ function ControlBar({
   onFlip,
   onOutput,
   onLeave,
-  colors,
   lockedForCubicle,
   sessionPhase,
   focusRemainingSeconds,
@@ -2853,7 +2696,6 @@ function ControlBar({
   onFlip: () => void;
   onOutput: () => void;
   onLeave: () => void;
-  colors: Colors;
   lockedForCubicle: boolean;
   sessionPhase: SessionPhase;
   focusRemainingSeconds: number;
@@ -2882,7 +2724,6 @@ function ControlBar({
         }
         onPress={onMic}
         state={micLocked ? "off" : micEnabled ? "on" : "off"}
-        colors={colors}
         disabled={micLocked}
       />
       <CtrlBtn
@@ -2890,7 +2731,6 @@ function ControlBar({
         label={camEnabled ? "Stop Video" : "Start Video"}
         onPress={onCam}
         state={lockedForCubicle ? "off" : camEnabled ? "on" : "off"}
-        colors={colors}
         disabled={lockedForCubicle}
       />
       <CtrlBtn
@@ -2898,21 +2738,18 @@ function ControlBar({
         label={isFrontCam ? "Rear Cam" : "Front Cam"}
         onPress={onFlip}
         state="on"
-        colors={colors}
       />
       <CtrlBtn
         icon={<VolumeIcon />}
         label={outputLabel}
         onPress={onOutput}
         state="on"
-        colors={colors}
       />
       <CtrlBtn
         icon={<span style={{ fontSize: 16 }}>✕</span>}
         label="End"
         onPress={onLeave}
         state="danger"
-        colors={colors}
       />
     </div>
   );
@@ -2924,7 +2761,6 @@ function CtrlBtn({
   sublabel,
   onPress,
   state,
-  colors,
   disabled,
 }: {
   icon: React.ReactNode;
@@ -2932,9 +2768,9 @@ function CtrlBtn({
   sublabel?: string;
   onPress: () => void;
   state: "on" | "off" | "danger";
-  colors: Colors;
   disabled?: boolean;
 }) {
+  const { colors } = useTokens();
   const circleBg =
     state === "off"
       ? colors.tint.danger + "20"
@@ -3023,9 +2859,6 @@ function CtrlBtn({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Icon components (inline SVG replacing expo-vector-icons)
-// ─────────────────────────────────────────────────────────────────────────────
 function MicIcon({ on }: { on: boolean }) {
   return on ? (
     <svg

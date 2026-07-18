@@ -45,7 +45,6 @@ export default function ActionRow({
     };
   }, [postId]);
 
-  // clear any pending "copied" reset timer on unmount
   useEffect(() => {
     return () => {
       if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
@@ -102,7 +101,6 @@ export default function ActionRow({
         if (navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(url);
         } else {
-          // fallback for browsers/contexts without Clipboard API access
           const textarea = document.createElement("textarea");
           textarea.value = url;
           textarea.style.position = "fixed";

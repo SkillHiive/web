@@ -4,9 +4,6 @@ import { supabase } from "@/lib/supabase";
 import { useTokens } from "@/theme";
 import { Text } from "@/components/ui";
 
-/* --------------------------------- Icons --------------------------------- */
-// Inlined to match the pattern used in OpenSource.tsx — no extra install step.
-
 function ArrowUpRight({ size = 13, color }: { size?: number; color: string }) {
   return (
     <svg
@@ -46,8 +43,6 @@ function LockIcon({ size = 14, color }: { size?: number; color: string }) {
 
 const monoFont =
   'ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace';
-
-/* ---------------------------------- Page ---------------------------------- */
 
 export default function Sign() {
   const navigate = useNavigate();

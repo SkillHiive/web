@@ -4,9 +4,6 @@ import { Avatar, Text } from "@/components/ui";
 import ActionRow from "@/components/ActionRow";
 import { useTokens } from "@/theme";
 
-// ─────────────────────────────────────────
-// Shared post model (superset of Feed + Profile queries)
-// ─────────────────────────────────────────
 
 export type ProjectStatus = "active" | "completed" | "paused";
 
@@ -53,9 +50,6 @@ const OFFER_LABELS: Record<string, string> = {
   contract: "Contract",
 };
 
-// ─────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────
 
 export function timeAgo(iso: string): string {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -79,9 +73,6 @@ function calcDuration(s: string | null, e: string | null): string | null {
   return r ? `${y} yr ${r} mo` : `${y} yr`;
 }
 
-// ─────────────────────────────────────────
-// FeedCard — mirror of mobile FeedCard.tsx
-// ─────────────────────────────────────────
 
 export function FeedCard({
   children,
@@ -170,8 +161,6 @@ function AuthorRow({
   );
 }
 
-// A compact type badge + timestamp header used when the author is hidden
-// (e.g. on your own profile), mirroring the mobile profile cards.
 function BadgeRow({
   post,
   badge,
@@ -205,9 +194,6 @@ interface CardProps {
   onOpen?: (id: string) => void;
 }
 
-// ─────────────────────────────────────────
-// ProjectCard
-// ─────────────────────────────────────────
 
 export function ProjectCard({ post, myId = null, hideAuthor, onOpen }: CardProps) {
   const navigate = useNavigate();
@@ -274,9 +260,6 @@ export function ProjectCard({ post, myId = null, hideAuthor, onOpen }: CardProps
   );
 }
 
-// ─────────────────────────────────────────
-// OfferCard
-// ─────────────────────────────────────────
 
 export function OfferCard({ post, myId = null, hideAuthor, onOpen }: CardProps) {
   const navigate = useNavigate();
@@ -331,9 +314,6 @@ export function OfferCard({ post, myId = null, hideAuthor, onOpen }: CardProps) 
   );
 }
 
-// ─────────────────────────────────────────
-// MediaCard
-// ─────────────────────────────────────────
 
 export function MediaCard({ post, myId = null, hideAuthor, onOpen }: CardProps) {
   const navigate = useNavigate();
@@ -371,7 +351,6 @@ export function MediaCard({ post, myId = null, hideAuthor, onOpen }: CardProps) 
   );
 }
 
-// Convenience dispatcher
 export function PostCard({ post, myId = null, hideAuthor, onOpen }: CardProps) {
   if (post.post_type === "project") return <ProjectCard post={post} myId={myId} hideAuthor={hideAuthor} onOpen={onOpen} />;
   if (post.post_type === "offer") return <OfferCard post={post} myId={myId} hideAuthor={hideAuthor} onOpen={onOpen} />;

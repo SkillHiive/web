@@ -61,14 +61,12 @@ export default function PublicProfile() {
   const [cursor, setCursor] = useState<string | null>(null);
   const isFetchingMore = useRef(false);
 
-  // Redirect to own profile when viewing self
   useEffect(() => {
     if (id && myProfile?.id && id === myProfile.id) {
       navigate("/profile", { replace: true });
     }
   }, [id, myProfile?.id, navigate]);
 
-  // Fetch profile
   useEffect(() => {
     if (!id) return;
     (async () => {
@@ -83,7 +81,6 @@ export default function PublicProfile() {
     })();
   }, [id]);
 
-  // Ally count
   useEffect(() => {
     if (!id) return;
     void supabase
@@ -94,7 +91,6 @@ export default function PublicProfile() {
       .then(({ count }) => setAllyCount(count ?? 0));
   }, [id]);
 
-  // Ally status
   const fetchAllyStatus = useCallback(async () => {
     if (!id || !myProfile?.id) return;
     setAllyStatus("loading");
@@ -129,7 +125,6 @@ export default function PublicProfile() {
     void fetchAllyStatus();
   }, [fetchAllyStatus]);
 
-  // Posts
   const fetchUserPosts = useCallback(async () => {
     if (!id) return;
     setLoadingPosts(true);
@@ -171,7 +166,6 @@ export default function PublicProfile() {
     void fetchUserPosts();
   }, [fetchUserPosts]);
 
-  // Ally actions
   async function sendAllyRequest() {
     if (!myProfile?.id || !id) return;
     setActionLoading(true);
@@ -213,7 +207,6 @@ export default function PublicProfile() {
   const SURFACE = colors.surface.secondary;
   const BORDER = colors.border.subtle;
 
-  // Ally button
   function AllyButton() {
     const base: React.CSSProperties = {
       display: "flex",

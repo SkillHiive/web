@@ -38,9 +38,6 @@ export function useActiveRooms() {
     mounted.current = true;
     let poll: ReturnType<typeof setInterval> | null = null;
 
-    // Polling instead of realtime: the backend's realtime WS is unreliable
-    // (same reason the feed polls), so we keep the list fresh on an interval
-    // rather than relying on a subscription that may never connect.
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted.current) return;
       if (!session) {
