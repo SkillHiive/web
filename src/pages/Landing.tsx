@@ -7,7 +7,7 @@ import { OpenSource } from "./OpenSource";
 const Landing = () => {
   return (
     <SwipeLayout>
-      <div className="relative overflow-hidden" style={{ width: "100%" }}>
+      <div className="relative overflow-hidden p-0 m-0" style={{ width: "100%" }}>
         <Hero />
         <Features />
         <OpenSource />
