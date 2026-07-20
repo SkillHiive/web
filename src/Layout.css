@@ -183,6 +183,7 @@ body {
   font-family: var(--font-mono);
   font-size: clamp(12px, 1.2vw, 14px);
   line-height: 1.7;
+  overflow-x: hidden;
 }
 
 .hero a {

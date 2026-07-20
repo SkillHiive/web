@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { supabase } from "@/lib/supabase";
 import { useTokens } from "@/theme";
 import { Text } from "@/components/ui";
+import peace from "@/assets/vid.mp4"
 
 type FieldId = "displayName" | "username" | "email" | "password" | "confirm";
 
@@ -144,7 +145,7 @@ function Field({
           color: labelColor,
         }}
       >
-        {label}
+        
       </label>
 
       <div
@@ -155,9 +156,10 @@ function Field({
           alignItems: "center",
           padding: "0 12px",
           border: `1px solid ${borderColor}`,
-          background: focused ? colors.surface.secondary : colors.surface.primary,
-          transition: "border-color 180ms ease, background 180ms ease",
+          background: `rgba(0,0,0,0.2)`,
+          backdropFilter: focused ? `blur(15px)` : `blur(3px)`, 
         }}
+        className="transition-ui"
       >
         <input
           id={id}
@@ -480,6 +482,7 @@ export default function SignUpScreen({ onSubmit }: SignUpScreenProps) {
       }}
       className="skillhive-signup-grid relative"
     >
+      <video src={peace} className="absolute top-0 -scale-x-100 left-0 object-cover min-h-dvh -z-1" playsInline muted autoPlay loop></video>
       <style>{`
         @keyframes skillhive-spin { to { transform: rotate(360deg); } }
         @media (max-width: 900px) {
@@ -492,7 +495,7 @@ export default function SignUpScreen({ onSubmit }: SignUpScreenProps) {
         style={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
+          justifyContent: "end",
           padding: spacing.xxxl,
           borderRight: `1px solid ${colors.border.subtle}`,
           position: "relative",
@@ -509,58 +512,7 @@ export default function SignUpScreen({ onSubmit }: SignUpScreenProps) {
             pointerEvents: "none",
           }}
         />
-        <div className="flex flex-col justify-start items-start h-full" style={{ position: "relative" }}>
-          <div className="mt-[20%]" style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: colors.surface.skillhive,
-              }}
-            />
-            <Text
-              variant="label"
-              style={{
-                color: colors.surface.skillhive,
-                textTransform: "uppercase",
-                letterSpacing: 1.5,
-                fontFamily: monoFont,
-              }}
-            >
-              skillhiive
-            </Text>
-          </div>
-
-          <Text
-            as="h1"
-            variant="headline"
-            style={{
-              color: colors.text.primary,
-              marginTop: spacing.xxl,
-              lineHeight: `${typography.headline.lineHeight}px`,
-              letterSpacing: typography.headline.letterSpacing,
-              maxWidth: 420,
-            }}
-          >
-            Join the network.
-          </Text>
-          <Text
-            variant="bodyLg"
-            style={{
-              display: "block",
-              marginTop: spacing.base,
-              maxWidth: 380,
-              color: colors.text.secondary,
-              lineHeight: 1.6,
-
-            }}
-          >
-            An account here is a seat in the room — no leaderboards, no
-            streaks, just the people you're already building alongside.
-          </Text>
-        </div>
-
+        
         <div style={{ position: "relative", display: "flex", alignItems: "center", gap: spacing.sm }}>
           <span
             style={{
@@ -578,7 +530,7 @@ export default function SignUpScreen({ onSubmit }: SignUpScreenProps) {
       </div>
 
       {/* Right: form */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: spacing.xxl }}>
+      <div className="backdrop-blur-xs" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: spacing.xxl }}>
         <div style={{ width: "100%", maxWidth: 460 }}>
           {submitted ? (
             <SuccessScreen email={values.email.trim()} colors={colors} />
@@ -586,6 +538,41 @@ export default function SignUpScreen({ onSubmit }: SignUpScreenProps) {
             <>
 
               <div style={{ display: "flex", flexDirection: "column", gap: spacing.lg }}>
+                <div className="flex flex-col mb-4 justify-start items-center h-full mix-blend-screen" style={{ position: "relative" }}>
+          <div className="" style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
+
+          </div>
+
+          <Text
+            as="h1"
+            variant="headline"
+            style={{
+              color: colors.text.primary,
+              marginTop: spacing.xxl,
+              lineHeight: `${typography.headline.lineHeight}px`,
+              letterSpacing: typography.headline.letterSpacing,
+              maxWidth: 420,
+            }}
+          >
+            Join the network.
+          </Text>
+          <Text
+            variant="body"
+            className="!text-xs text-center"
+            style={{
+              display: "block",
+              marginTop: spacing.base,
+              maxWidth: 380,
+              color: colors.text.secondary,
+              lineHeight: 1.6,
+
+            }}
+          >
+            An account here is a seat in the room. No leaderboards, no
+            streaks, just the people you're already building alongside.
+          </Text>
+        </div>
+
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: spacing.md }}>
                   <Field
                     id="displayName"
@@ -704,7 +691,7 @@ export default function SignUpScreen({ onSubmit }: SignUpScreenProps) {
                   justifyContent: "space-between",
                 }}
               >
-                <Text variant="caption" style={{ color: colors.text.tertiary, fontFamily: monoFont }}>
+                <Text variant="caption" style={{ color: colors.text.secondary, fontFamily: monoFont }}>
                   Already have an account?
                 </Text>
                 <Link
@@ -728,7 +715,7 @@ export default function SignUpScreen({ onSubmit }: SignUpScreenProps) {
                 style={{
                   display: "block",
                   marginTop: spacing.xl,
-                  color: colors.text.tertiary,
+                  color: colors.text.secondary,
                   opacity: 0.7,
                   textAlign: "center",
                 }}
