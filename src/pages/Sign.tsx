@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabase";
 import { useTokens } from "@/theme";
 import { Text } from "@/components/ui";
 import peace from "@/assets/sign.mp4"
-import { Button } from "@headlessui/react";
 
 function ArrowUpRight({ size = 13, color }: { size?: number; color: string }) {
   return (
@@ -87,15 +86,6 @@ export default function Sign() {
       setLoading(false);
     }
   }
-
-  const sectionLabel: React.CSSProperties = {
-    fontSize: typography.label.size,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-    color: colors.text.tertiary,
-    fontWeight: typography.label.weight,
-    fontFamily: monoFont,
-  };
 
   const inputStyle = (field: "email" | "password"): React.CSSProperties => ({
     width: "100%",

@@ -92,7 +92,6 @@ interface FieldProps {
 
 function Field({
   id,
-  label,
   tag,
   type = "text",
   placeholder,
